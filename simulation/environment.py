@@ -19,7 +19,7 @@ class SupplyChainEnvironment:
 
         cost = (
             production * 1.0 +
-            self.inventory * 0.1 +
+            self.inventory * 0.5 +   # was 0.1 — penalises excess stock buildup
             delay * 5
         )
 

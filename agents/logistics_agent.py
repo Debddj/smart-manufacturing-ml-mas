@@ -1,8 +1,8 @@
 class LogisticsAgent:
 
     def __init__(self):
-        self.capacity = 60
+        self.capacity = 300
 
     def act(self, shipment):
 
-        return min(shipment, self.capacity) 
+        return min(shipment, self.capacity)  
