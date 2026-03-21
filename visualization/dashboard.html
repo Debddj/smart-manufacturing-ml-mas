@@ -2,508 +2,496 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Manufacturing ML-MAS Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Smart Manufacturing ML-MAS — Control Center</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ── Reset & base ──────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background: #f0ede8;
-  color: #1a1a18;
-  transition: background .25s, color .25s;
-}
-body.dark {
-  background: #141413;
-  color: #d4d2c8;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.5;background:#f0ede8;color:#1a1a18;transition:background .2s,color .2s}
+body.dark{background:#121211;color:#d4d2c8}
+header{background:#1a1a2e;color:#e8e6dc;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header h1{font-size:16px;font-weight:600;letter-spacing:-.01em}
+header p{font-size:11px;opacity:.6;margin-top:1px}
+.hdr-actions{display:flex;gap:8px;flex-shrink:0}
+.hdr-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#e8e6dc;border-radius:7px;padding:6px 13px;font-size:12px;cursor:pointer;white-space:nowrap}
+.hdr-btn:hover{background:rgba(255,255,255,.2)}
+.status-bar{background:#1e1c30;color:#b8b4d8;font-size:11px;padding:6px 24px;display:flex;gap:20px;flex-wrap:wrap}
+.sp{display:flex;align-items:center;gap:5px}
+.dot-s{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.main{max-width:1300px;margin:0 auto;padding:18px 18px 48px}
+.sec{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#888780;margin:22px 0 10px}
+.card{background:#fff;border:.5px solid rgba(0,0,0,.09);border-radius:12px;padding:15px 17px}
+body.dark .card{background:#1e1e1c;border-color:rgba(255,255,255,.07)}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ctitle{font-size:11px;font-weight:600;color:#5c5b57;margin-bottom:11px}
+body.dark .ctitle{color:#a0a09a}
 
-/* ── Layout ────────────────────────────────────────────────────────────── */
-header {
-  background: #1a1a2e;
-  color: #e8e6dc;
-  padding: 16px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
-header p  { font-size: 12px; opacity: .65; margin-top: 2px; }
-.main { max-width: 1280px; margin: 0 auto; padding: 20px 20px 40px; }
-.section-title {
-  font-size: 11px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: .07em; color: #888780; margin: 24px 0 10px;
-}
+/* KPI */
+.kpi{background:#f7f5f0;border-radius:10px;padding:13px 15px;text-align:center}
+body.dark .kpi{background:#252523}
+.kpi-lbl{font-size:10px;color:#888780;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.kpi-val{font-size:26px;font-weight:600}
+.kpi-sub{font-size:10px;color:#888780;margin-top:2px}
+.kpi-pass{color:#0a6e48}.kpi-fail{color:#a02020}
+body.dark .kpi-pass{color:#3bcfa0}
+body.dark .kpi-fail{color:#f09090}
+.c-teal{color:#0a6e48}.c-blue{color:#1458a0}.c-amber{color:#9a5c0a}.c-purple{color:#4338a0}
+body.dark .c-teal{color:#3bcfa0}
+body.dark .c-blue{color:#60a8e8}
+body.dark .c-amber{color:#f5b840}
+body.dark .c-purple{color:#a09af5}
 
-/* ── Cards ─────────────────────────────────────────────────────────────── */
-.card {
-  background: #ffffff;
-  border: 0.5px solid rgba(0,0,0,.1);
-  border-radius: 12px;
-  padding: 16px 18px;
-}
-body.dark .card {
-  background: #1e1e1c;
-  border-color: rgba(255,255,255,.08);
-}
+/* Scenario cards */
+.sc-card{border-radius:12px;padding:16px 17px;border-width:1.5px;border-style:solid}
+.sc-gray {background:#f7f5f0;border-color:#b4b2a9}
+.sc-teal {background:#ecfaf4;border-color:#1D9E75}
+.sc-amber{background:#fef7ec;border-color:#EF9F27}
+body.dark .sc-gray {background:#252523;border-color:#5c5b57}
+body.dark .sc-teal {background:#0d2a1e;border-color:#1D9E75}
+body.dark .sc-amber{background:#2a1e08;border-color:#EF9F27}
+.sc-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:7px}
+.sc-bdg-gray {background:#e0ded8;color:#5c5b57}
+.sc-bdg-teal {background:#c0f0da;color:#085041}
+.sc-bdg-amber{background:#fde8b0;color:#633806}
+body.dark .sc-bdg-gray {background:#3a3a38;color:#b4b2a9}
+body.dark .sc-bdg-teal {background:#0d4030;color:#5dcaa5}
+body.dark .sc-bdg-amber{background:#3d2a06;color:#f5b840}
+.sc-name{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:1px}
+body.dark .sc-name{color:#d4d2c8}
+.sc-desc{font-size:11px;color:#888780;margin-bottom:11px}
 
-/* ── KPI row ────────────────────────────────────────────────────────────── */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
-.kpi-card {
-  background: #f7f5f0;
-  border-radius: 10px;
-  padding: 14px 16px;
-  text-align: center;
-}
-body.dark .kpi-card { background: #252523; }
-.kpi-label { font-size: 11px; color: #888780; margin-bottom: 4px; }
-.kpi-value { font-size: 26px; font-weight: 600; }
-.kpi-sub   { font-size: 11px; color: #888780; margin-top: 2px; }
-.c-teal   { color: #0f7a5a; } body.dark .c-teal   { color: #3bcfa0; }
-.c-blue   { color: #1458a0; } body.dark .c-blue   { color: #60a8e8; }
-.c-amber  { color: #9a5c0a; } body.dark .c-amber  { color: #f5b840; }
-.c-purple { color: #4338a0; } body.dark .c-purple { color: #a09af5; }
+/* Headline metric block inside scenario card */
+.sc-metric-row{display:flex;align-items:flex-end;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.sc-metric{flex:1;min-width:80px}
+.sc-metric-lbl{font-size:10px;color:#888780;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.sc-metric-val{font-size:22px;font-weight:700;line-height:1}
+.sc-metric-sub{font-size:10px;color:#888780;margin-top:2px}
 
-/* ── Chart grids ────────────────────────────────────────────────────────── */
-.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
-.chart-title { font-size: 12px; font-weight: 600; color: #5c5b57; margin-bottom: 12px; }
-body.dark .chart-title { color: #a0a09a; }
-.chart-wrap { position: relative; }
+/* Improvement badges */
+.imp-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-bottom:10px}
+.imp-cost-save{background:#dcf5ea;color:#085041}
+.imp-neutral  {background:#ebebeb;color:#5c5b57}
+.imp-cost-neg {background:#fde8e8;color:#9a2020}
+body.dark .imp-cost-save{background:#0d3020;color:#5dcaa5}
+body.dark .imp-neutral  {background:#2a2a28;color:#a0a09a}
+body.dark .imp-cost-neg {background:#3d1818;color:#f09090}
 
-/* ── Disruption badge row ───────────────────────────────────────────────── */
-.status-bar {
-  background: #1e1c30;
-  color: #b8b4d8;
-  font-size: 12px;
-  padding: 7px 28px;
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.status-pill {
-  display: flex; align-items: center; gap: 6px;
-}
-.dot-sm { width: 7px; height: 7px; border-radius: 50%; }
+.sc-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:.5px solid rgba(0,0,0,.06)}
+body.dark .sc-row{border-color:rgba(255,255,255,.06)}
+.sc-row:last-of-type{border-bottom:none}
+.sc-row-lbl{color:#888780}
+.sc-row-val{font-weight:500}
+.sla-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;margin-top:9px;display:inline-block}
+.sla-pass{background:#dcf5ea;color:#085041}
+.sla-fail{background:#fde8e8;color:#9a2020}
+body.dark .sla-pass{background:#0d3020;color:#5dcaa5}
+body.dark .sla-fail{background:#3d1818;color:#f09090}
 
-/* ── Disruption table ───────────────────────────────────────────────────── */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-th {
-  text-align: left; padding: 7px 10px;
-  border-bottom: 1px solid rgba(0,0,0,.08);
-  font-weight: 600; font-size: 11px; color: #888780;
-}
-td { padding: 7px 10px; border-bottom: 0.5px solid rgba(0,0,0,.06); }
-body.dark th { border-color: rgba(255,255,255,.07); }
-body.dark td { border-color: rgba(255,255,255,.05); }
-tr:last-child td { border-bottom: none; }
-.sev-high   { background: #fde8e8; color: #9a2020; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-.sev-medium { background: #fef3da; color: #8a5a00; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-body.dark .sev-high   { background: #3d1818; color: #f09090; }
-body.dark .sev-medium { background: #3d2e0a; color: #f0c060; }
+/* Chart legend note */
+.chart-note{font-size:10px;color:#888780;margin-top:6px}
 
-/* ── Theme toggle ────────────────────────────────────────────────────────── */
-#theme-btn {
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  color: #e8e6dc;
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-#theme-btn:hover { background: rgba(255,255,255,.2); }
-
-/* ── Responsive ─────────────────────────────────────────────────────────── */
-@media (max-width: 680px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .grid-2   { grid-template-columns: 1fr; }
-}
+/* Disruption table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 10px;border-bottom:1px solid rgba(0,0,0,.08);font-weight:600;font-size:10px;color:#888780;text-transform:uppercase;letter-spacing:.05em}
+td{padding:6px 10px;border-bottom:.5px solid rgba(0,0,0,.05)}
+body.dark th{border-color:rgba(255,255,255,.07)}
+body.dark td{border-color:rgba(255,255,255,.05)}
+tr:last-child td{border-bottom:none}
+.sev-h{background:#fde8e8;color:#9a2020;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600}
+.sev-m{background:#fef3da;color:#8a5a00;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600}
+body.dark .sev-h{background:#3d1818;color:#f09090}
+body.dark .sev-m{background:#3d2e0a;color:#f0c060}
+@media(max-width:680px){.g4,.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>Smart Manufacturing ML-MAS</h1>
-    <p id="meta-line">Loading...</p>
+  <div><h1>Smart Manufacturing ML-MAS — Control Center</h1><p id="meta-line">Loading…</p></div>
+  <div class="hdr-actions">
+    <button class="hdr-btn" onclick="exportCSV()">Export report</button>
+    <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()">Dark mode</button>
   </div>
-  <button id="theme-btn" onclick="toggleTheme()">Dark mode</button>
 </header>
-
 <div class="status-bar" id="status-bar"></div>
 
 <div class="main">
 
-  <div class="section-title">Key performance indicators</div>
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-label">Fill rate</div>
-      <div class="kpi-value c-teal"   id="kpi-fill">—</div>
-      <div class="kpi-sub">target 0.90+</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Avg delay</div>
-      <div class="kpi-value c-blue"   id="kpi-delay">—</div>
-      <div class="kpi-sub">units / step</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Resilience score</div>
-      <div class="kpi-value c-purple" id="kpi-res">—</div>
-      <div class="kpi-sub">disrupted ÷ normal fill</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Throughput</div>
-      <div class="kpi-value c-amber"  id="kpi-tput">—</div>
-      <div class="kpi-sub">units satisfied</div>
-    </div>
-  </div>
+<div class="sec">Key performance indicators</div>
+<div class="g4">
+  <div class="kpi"><div class="kpi-lbl">Fill rate</div><div class="kpi-val c-teal" id="k-fill">—</div><div class="kpi-sub" id="k-fill-sla"></div></div>
+  <div class="kpi"><div class="kpi-lbl">Avg delay</div><div class="kpi-val c-blue" id="k-delay">—</div><div class="kpi-sub" id="k-delay-sla"></div></div>
+  <div class="kpi"><div class="kpi-lbl">Resilience score</div><div class="kpi-val c-purple" id="k-res">—</div><div class="kpi-sub">disrupted ÷ normal</div></div>
+  <div class="kpi"><div class="kpi-lbl">Throughput</div><div class="kpi-val c-amber" id="k-tput">—</div><div class="kpi-sub">units satisfied</div></div>
+</div>
 
-  <div class="section-title">Training progress</div>
-  <div class="grid-2">
-    <div class="card">
-      <div class="chart-title">RL learning curve</div>
-      <div class="chart-wrap"><canvas id="c-learn" height="180"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="chart-title">Fill rate &amp; delay per episode</div>
-      <div class="chart-wrap"><canvas id="c-epfill" height="180"></canvas></div>
-    </div>
-  </div>
+<div class="sec">Scenario comparison — RL cost efficiency vs baseline</div>
+<div class="g3" id="sc-cards"></div>
 
-  <div class="section-title">Last episode — supply chain</div>
-  <div class="card">
-    <div class="chart-title">Demand vs satisfied supply</div>
-    <div class="chart-wrap"><canvas id="c-dsupply" height="120"></canvas></div>
-  </div>
+<div class="card" style="margin-top:11px">
+  <div class="ctitle">Fill rate &amp; cost — scenario comparison (both axes matter)</div>
+  <canvas id="c-scenario" height="110"></canvas>
+  <div class="chart-note">SLA threshold shown on fill rate axis. RL system achieves comparable fill rate at substantially lower total cost — this is the measurable value of reinforcement learning.</div>
+</div>
 
-  <div class="section-title">Inventory &amp; costs</div>
-  <div class="grid-2">
-    <div class="card">
-      <div class="chart-title">Inventory levels</div>
-      <div class="chart-wrap"><canvas id="c-inv" height="180"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="chart-title">Cost breakdown per step</div>
-      <div class="chart-wrap"><canvas id="c-cost" height="180"></canvas></div>
-    </div>
-  </div>
+<div class="sec">Training progress</div>
+<div class="g2">
+  <div class="card"><div class="ctitle">RL learning curve</div><canvas id="c-learn" height="180"></canvas></div>
+  <div class="card"><div class="ctitle">Fill rate &amp; delay per episode</div><canvas id="c-epfill" height="180"></canvas></div>
+</div>
 
-  <div class="section-title">Disruption analysis</div>
-  <div class="grid-2">
-    <div class="card">
-      <div class="chart-title">Disruption event distribution</div>
-      <div class="chart-wrap" style="max-width:320px;margin:auto">
-        <canvas id="c-dtype" height="240"></canvas>
-      </div>
-    </div>
-    <div class="card">
-      <div class="chart-title">Resilience — normal vs disrupted</div>
-      <div class="chart-wrap"><canvas id="c-radar" height="240"></canvas></div>
-    </div>
-  </div>
+<div class="sec">Last episode — supply chain</div>
+<div class="card"><div class="ctitle">Demand vs satisfied supply</div><canvas id="c-dsupply" height="110"></canvas></div>
 
-  <div class="section-title">Disruption event log</div>
-  <div class="card">
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Step</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Duration</th>
-            <th>Severity</th>
-          </tr>
-        </thead>
-        <tbody id="disruption-tbody"></tbody>
-      </table>
-    </div>
-  </div>
+<div class="sec">Inventory &amp; costs</div>
+<div class="g2">
+  <div class="card"><div class="ctitle">Inventory levels with safety stock threshold</div><canvas id="c-inv" height="180"></canvas></div>
+  <div class="card"><div class="ctitle">Cost breakdown per step</div><canvas id="c-cost" height="180"></canvas></div>
+</div>
+
+<div class="sec">Disruption analysis</div>
+<div class="g2">
+  <div class="card"><div class="ctitle">Disruption type distribution</div><div style="max-width:300px;margin:auto"><canvas id="c-dtype" height="230"></canvas></div></div>
+  <div class="card"><div class="ctitle">Resilience radar — normal vs disrupted</div><canvas id="c-radar" height="230"></canvas></div>
+</div>
+
+<div class="sec">Disruption event log</div>
+<div class="card"><div class="tbl-wrap">
+  <table><thead><tr><th>Step</th><th>Type</th><th>Description</th><th>Duration</th><th>Severity</th></tr></thead>
+  <tbody id="dtbody"></tbody></table>
+</div></div>
 
 </div>
 
 <script>
-/* ── Placeholder data (replaced by export_dashboard_data.py) ─────────── */
 /* __INJECT_DATA__ */
 
-/* ── Fallback sample data if not injected ────────────────────────────── */
-if (typeof window.DASHBOARD_DATA === "undefined") {
-  const ep = Array.from({length:100}, (_,i)=>4250000+i*2400+Math.random()*800);
-  const fr = Array.from({length:100}, (_,i)=>Math.min(0.98, 0.82+i*0.0015+Math.random()*.01));
-  const dl = Array.from({length:100}, (_,i)=>Math.max(0.1, 14-i*.14+Math.random()*.5));
-  const n  = 500;
-  const dem = Array.from({length:n}, ()=>20+Math.random()*130);
-  const sat = dem.map(d=>d*(0.9+Math.random()*.1));
-  const inv = Array.from({length:n}, (_,i)=>80+Math.sin(i/40)*40+Math.random()*20);
-  window.DASHBOARD_DATA = {
-    meta: { trained_at:"sample data", episodes:100, model:"Q-Learning", dataset:"demand.csv" },
-    final_metrics: { "Fill Rate":0.97,"Avg Delay":0.24,"Total Cost":16300000,"Throughput":10423000 },
-    resilience_metrics: { resilience_score:0.89, avg_recovery_steps:4.2, disruption_rate:0.11,
-                          fill_during_disruption:0.87, fill_normal:0.97 },
-    episode_rewards: ep,
-    episode_fill_rates: fr,
-    episode_avg_delays: dl,
-    demand_sample: dem,
-    satisfied_sample: sat,
-    inventory_sample: inv,
-    prod_cost_sample: Array.from({length:n}, ()=>40+Math.random()*40),
-    hold_cost_sample: Array.from({length:n}, ()=>10+Math.random()*30),
-    delay_cost_sample: Array.from({length:n}, ()=>Math.random()*20),
-    disruption_log: [
-      {step:320, type:"supplier_failure",    duration:5, description:"Supplier failure",    severity:"high"},
-      {step:740, type:"demand_surge",        duration:3, description:"Demand surge",        severity:"medium"},
-      {step:1100,type:"logistics_breakdown", duration:4, description:"Logistics breakdown", severity:"high"},
-      {step:1540,type:"factory_slowdown",    duration:2, description:"Factory slowdown",    severity:"medium"},
-      {step:2080,type:"demand_surge",        duration:4, description:"Demand surge",        severity:"medium"},
+if(typeof window.DASHBOARD_DATA==="undefined"){
+  const ep=Array.from({length:100},(_,i)=>4250000+i*2400+Math.random()*800);
+  const fr=Array.from({length:100},(_,i)=>Math.min(.98,.82+i*.0015+Math.random()*.01));
+  const dl=Array.from({length:100},(_,i)=>Math.max(.1,14-i*.14+Math.random()*.5));
+  const n=500,dem=Array.from({length:n},()=>20+Math.random()*130);
+  const sat=dem.map(d=>d*(.9+Math.random()*.1));
+  const inv=Array.from({length:n},(_,i)=>80+Math.sin(i/40)*40+Math.random()*20);
+  window.DASHBOARD_DATA={
+    meta:{trained_at:"sample data",episodes:100,model:"Q-Learning",dataset:"demand.csv",total_events:247},
+    sla:{fill_rate:.90,avg_delay:5.0},
+    sla_compliance:{fill_rate:{value:.97,target:.90,pass:true},avg_delay:{value:.24,target:5.0,pass:true}},
+    final_metrics:{"Fill Rate":.97,"Avg Delay":.24,"Total Cost":23150000,"Throughput":10423000},
+    resilience_metrics:{resilience_score:.89,avg_recovery_steps:4.2,disruption_rate:.18,fill_during_disruption:.87,fill_normal:.97},
+    scenario_comparison:{
+      baseline:{label:"No-RL baseline",description:"Heuristic demand-following policy",fill_rate:.993,avg_delay:.05,total_cost:36170000,throughput:9100000,resilience_score:1.0,cost_saving_pct:0,fr_delta_pp:0,sla_pass:true,is_rl:false,accent:"gray"},
+      rl_normal:{label:"RL system — normal",description:"Trained Q-agent, no disruptions",fill_rate:.997,avg_delay:.17,total_cost:23150000,throughput:10423000,resilience_score:1.0,cost_saving_pct:36.0,fr_delta_pp:.4,sla_pass:true,is_rl:true,accent:"teal"},
+      rl_disrupted:{label:"RL system — disrupted",description:"Trained Q-agent under active disruptions",fill_rate:.993,avg_delay:.39,total_cost:23230000,throughput:9800000,resilience_score:.996,cost_saving_pct:35.8,fr_delta_pp:.0,sla_pass:true,is_rl:true,accent:"amber"},
+    },
+    episode_rewards:ep,episode_fill_rates:fr,episode_avg_delays:dl,
+    demand_sample:dem,satisfied_sample:sat,inventory_sample:inv,
+    prod_cost_sample:Array.from({length:n},()=>40+Math.random()*40),
+    hold_cost_sample:Array.from({length:n},()=>10+Math.random()*30),
+    delay_cost_sample:Array.from({length:n},()=>Math.random()*20),
+    disruption_log:[
+      {step:320,type:"supplier_failure",duration:5,description:"Supplier failure",severity:"high"},
+      {step:740,type:"demand_surge",duration:3,description:"Demand surge",severity:"medium"},
+      {step:1100,type:"logistics_breakdown",duration:4,description:"Logistics breakdown",severity:"high"},
     ],
-    disruption_type_counts: { supplier_failure:3, demand_surge:6, logistics_breakdown:2, factory_slowdown:4 },
+    disruption_type_counts:{supplier_failure:3,demand_surge:6,logistics_breakdown:2,factory_slowdown:4},
   };
 }
 
-const D = window.DASHBOARD_DATA;
+const D=window.DASHBOARD_DATA;
+const PAL={teal:"#1D9E75",blue:"#378ADD",amber:"#EF9F27",purple:"#7F77DD",red:"#E24B4A",gray:"#888780"};
+const DCOLS={supplier_failure:PAL.red,demand_surge:PAL.amber,logistics_breakdown:PAL.blue,factory_slowdown:PAL.purple};
+const SLA=D.sla||{fill_rate:.90,avg_delay:5.0};
 
-/* ── Palette ─────────────────────────────────────────────────────────── */
-const PAL = {
-  blue:   "#378ADD",
-  teal:   "#1D9E75",
-  amber:  "#EF9F27",
-  purple: "#7F77DD",
-  coral:  "#D85A30",
-  gray:   "#888780",
-  red:    "#E24B4A",
-};
-const DCOLS = {
-  supplier_failure:    PAL.red,
-  demand_surge:        PAL.amber,
-  logistics_breakdown: PAL.blue,
-  factory_slowdown:    PAL.purple,
-};
-const gridColor = () => document.body.classList.contains("dark")
-  ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
-const textColor = () => document.body.classList.contains("dark") ? "#a0a09a" : "#5c5b57";
+const isDark=()=>document.body.classList.contains("dark");
+const gc=()=>isDark()?"rgba(255,255,255,.07)":"rgba(0,0,0,.07)";
+const tc=()=>isDark()?"#a0a09a":"#5c5b57";
+const fmtM=v=>v>=1e9?(v/1e9).toFixed(2)+"B":v>=1e6?(v/1e6).toFixed(2)+"M":v>=1e3?(v/1e3).toFixed(1)+"K":Math.round(v).toLocaleString();
 
-/* ── Helpers ─────────────────────────────────────────────────────────── */
-function fmt(v, dp=2) { return typeof v==="number" ? v.toFixed(dp) : v; }
-function fmtM(v) {
-  if (v>=1e6) return (v/1e6).toFixed(2)+"M";
-  if (v>=1e3) return (v/1e3).toFixed(1)+"K";
-  return Math.round(v).toLocaleString();
+function slaLine(n,val,color,label,axis="y"){
+  return{label,data:Array(n).fill(val),borderColor:color,borderDash:[6,4],borderWidth:1.5,
+    pointRadius:0,fill:false,tension:0,type:"line",yAxisID:axis,order:0};
 }
-function sharedOpts(title="") {
-  return {
-    responsive:true, maintainAspectRatio:true,
-    plugins:{
-      legend:{display:false},
-      title: title ? {display:true, text:title, font:{size:11}, color:textColor()} : {display:false},
-    },
+function baseOpts(){
+  return{responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:false}},
     scales:{
-      x:{ ticks:{maxTicksLimit:8, color:textColor(), font:{size:10}},
-          grid:{color:gridColor()} },
-      y:{ ticks:{maxTicksLimit:6, color:textColor(), font:{size:10}},
-          grid:{color:gridColor()} },
-    },
-  };
+      x:{ticks:{maxTicksLimit:8,color:tc(),font:{size:10}},grid:{color:gc()}},
+      y:{ticks:{maxTicksLimit:6,color:tc(),font:{size:10}},grid:{color:gc()}},
+    }};
 }
 
-/* ── Meta bar ────────────────────────────────────────────────────────── */
-document.getElementById("meta-line").textContent =
+/* Meta */
+document.getElementById("meta-line").textContent=
   `Trained: ${D.meta.trained_at} · ${D.meta.episodes} episodes · ${D.meta.dataset}`;
 
-/* ── Status bar ─────────────────────────────────────────────────────── */
-const sb = document.getElementById("status-bar");
-const stats = [
-  ["Fill rate",       fmt(D.final_metrics["Fill Rate"],4),   PAL.teal],
-  ["Resilience",      fmt(D.resilience_metrics.resilience_score,3), PAL.purple],
-  ["Disruption rate", fmt(D.resilience_metrics.disruption_rate*100,1)+"%", PAL.amber],
-  ["Avg recovery",    fmt(D.resilience_metrics.avg_recovery_steps,1)+" steps", PAL.blue],
-];
-stats.forEach(([lbl,val,col])=>{
-  sb.innerHTML += `<span class="status-pill">
-    <span class="dot-sm" style="background:${col}"></span>
-    <span style="opacity:.7">${lbl}:</span>&nbsp;<strong>${val}</strong>
-  </span>`;
+/* Status bar */
+const sb=document.getElementById("status-bar");
+const slac=D.sla_compliance||{};
+[
+  ["Fill rate",(slac.fill_rate?.value??D.final_metrics["Fill Rate"]).toFixed(3),slac.fill_rate?.pass!==false?PAL.teal:PAL.red],
+  ["Resilience",D.resilience_metrics.resilience_score.toFixed(3),PAL.purple],
+  ["Disruptions",D.meta.total_events+" events",PAL.amber],
+  ["SLA fill",slac.fill_rate?.pass!==false?"PASS":"FAIL",slac.fill_rate?.pass!==false?PAL.teal:PAL.red],
+  ["SLA delay",slac.avg_delay?.pass!==false?"PASS":"FAIL",slac.avg_delay?.pass!==false?PAL.teal:PAL.red],
+].forEach(([l,v,c])=>sb.innerHTML+=`<span class="sp"><span class="dot-s" style="background:${c}"></span><span style="opacity:.7">${l}:</span>&nbsp;<strong>${v}</strong></span>`);
+
+/* KPI */
+const fillVal=D.final_metrics["Fill Rate"];
+const delayVal=D.final_metrics["Avg Delay"];
+document.getElementById("k-fill").textContent=fillVal.toFixed(3);
+document.getElementById("k-delay").textContent=delayVal.toFixed(2);
+document.getElementById("k-res").textContent=D.resilience_metrics.resilience_score.toFixed(3);
+document.getElementById("k-tput").textContent=fmtM(D.final_metrics["Throughput"]);
+const kfs=document.getElementById("k-fill-sla");
+kfs.textContent=`SLA ${SLA.fill_rate} — `+(fillVal>=SLA.fill_rate?"PASS":"FAIL");
+kfs.className="kpi-sub "+(fillVal>=SLA.fill_rate?"kpi-pass":"kpi-fail");
+const kds=document.getElementById("k-delay-sla");
+kds.textContent=`SLA ≤${SLA.avg_delay} — `+(delayVal<=SLA.avg_delay?"PASS":"FAIL");
+kds.className="kpi-sub "+(delayVal<=SLA.avg_delay?"kpi-pass":"kpi-fail");
+
+/* Scenario cards */
+const accentCols={gray:PAL.gray,teal:PAL.teal,amber:PAL.amber};
+const badgeCls={gray:"sc-bdg-gray",teal:"sc-bdg-teal",amber:"sc-bdg-amber"};
+const cardCls={gray:"sc-gray",teal:"sc-teal",amber:"sc-amber"};
+const sc_container=document.getElementById("sc-cards");
+
+["baseline","rl_normal","rl_disrupted"].forEach(key=>{
+  const s=D.scenario_comparison[key]; if(!s)return;
+  const col=accentCols[s.accent]||PAL.gray;
+
+  /* Cost saving badge */
+  let impHtml="";
+  if(s.cost_saving_pct>0){
+    impHtml=`<span class="imp-badge imp-cost-save">&#8595; ${s.cost_saving_pct.toFixed(1)}% lower cost vs baseline</span>`;
+  } else if(s.cost_saving_pct<0){
+    impHtml=`<span class="imp-badge imp-cost-neg">&#8593; ${Math.abs(s.cost_saving_pct).toFixed(1)}% higher cost</span>`;
+  } else {
+    impHtml=`<span class="imp-badge imp-neutral">baseline</span>`;
+  }
+
+  /* Fill rate delta note */
+  const frNote=s.fr_delta_pp===0
+    ? "same fill rate as baseline"
+    : s.fr_delta_pp>0
+      ? `+${s.fr_delta_pp.toFixed(2)}pp above baseline`
+      : `${s.fr_delta_pp.toFixed(2)}pp vs baseline`;
+
+  const slaEl=`<span class="sla-pill ${s.sla_pass?"sla-pass":"sla-fail"}">SLA: ${s.sla_pass?"PASS":"FAIL"}</span>`;
+
+  sc_container.innerHTML+=`<div class="sc-card ${cardCls[s.accent]}">
+    <span class="sc-badge ${badgeCls[s.accent]}">${s.is_rl?"RL system":"No-RL"}</span>
+    <div class="sc-name">${s.label}</div>
+    <div class="sc-desc">${s.description}</div>
+    <div class="sc-metric-row">
+      <div class="sc-metric">
+        <div class="sc-metric-lbl">Total cost</div>
+        <div class="sc-metric-val" style="color:${col}">${fmtM(s.total_cost)}</div>
+        <div class="sc-metric-sub">operational cost</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-lbl">Fill rate</div>
+        <div class="sc-metric-val" style="font-size:18px;color:${col}">${s.fill_rate.toFixed(3)}</div>
+        <div class="sc-metric-sub">${frNote}</div>
+      </div>
+    </div>
+    ${impHtml}
+    <div class="sc-row"><span class="sc-row-lbl">Avg delay</span><span class="sc-row-val">${s.avg_delay.toFixed(2)}</span></div>
+    <div class="sc-row"><span class="sc-row-lbl">Resilience</span><span class="sc-row-val">${s.resilience_score.toFixed(3)}</span></div>
+    <div class="sc-row"><span class="sc-row-lbl">Throughput</span><span class="sc-row-val">${fmtM(s.total_cost>0?s.throughput:0)}</span></div>
+    ${slaEl}
+  </div>`;
 });
 
-/* ── KPI cards ───────────────────────────────────────────────────────── */
-document.getElementById("kpi-fill").textContent  = fmt(D.final_metrics["Fill Rate"],3);
-document.getElementById("kpi-delay").textContent = fmt(D.final_metrics["Avg Delay"],2);
-document.getElementById("kpi-res").textContent   = fmt(D.resilience_metrics.resilience_score,3);
-document.getElementById("kpi-tput").textContent  = fmtM(D.final_metrics["Throughput"]);
-
-/* ── Chart: Learning curve ───────────────────────────────────────────── */
-new Chart(document.getElementById("c-learn"), {
-  type:"line",
-  data:{ labels: D.episode_rewards.map((_,i)=>i+1),
-    datasets:[{data:D.episode_rewards, borderColor:PAL.blue, backgroundColor:"rgba(55,138,221,.1)",
-    fill:true, tension:.35, pointRadius:0, borderWidth:1.8}] },
-  options:{...sharedOpts(), plugins:{...sharedOpts().plugins,
-    title:{display:true,text:"Episode reward",font:{size:11},color:textColor()}}},
-});
-
-/* ── Chart: Fill rate + delay per episode (dual axis) ───────────────── */
+/* Scenario grouped bar chart — fill rate (left) + cost (right) */
 {
-  const opts = sharedOpts();
-  opts.plugins.legend = {display:true, labels:{color:textColor(), font:{size:10}}};
-  opts.scales.y1 = { type:"linear", position:"right",
-    ticks:{color:PAL.coral, font:{size:10}}, grid:{drawOnChartArea:false} };
+  const sc=D.scenario_comparison;
+  const lbls=["No-RL baseline","RL disrupted","RL normal"];
+  const frVals=[sc.baseline?.fill_rate||0,sc.rl_disrupted?.fill_rate||0,sc.rl_normal?.fill_rate||0];
+  const costVals=[sc.baseline?.total_cost||0,sc.rl_disrupted?.total_cost||0,sc.rl_normal?.total_cost||0];
+  const barCols=[PAL.gray,PAL.amber,PAL.teal];
+
+  const o=baseOpts();
+  o.plugins.legend={display:true,labels:{color:tc(),font:{size:10},boxWidth:18,padding:12}};
+  o.scales.y={min:.5,max:1.02,ticks:{color:tc(),font:{size:10},callback:v=>v.toFixed(2)},grid:{color:gc()},title:{display:true,text:"Fill rate",color:tc(),font:{size:10}}};
+  o.scales.y1={type:"linear",position:"right",grid:{drawOnChartArea:false},
+    ticks:{color:PAL.amber,font:{size:10},callback:v=>fmtM(v)},
+    title:{display:true,text:"Total cost",color:PAL.amber,font:{size:10}}};
+  o.scales.x={ticks:{color:tc(),font:{size:12}},grid:{display:false}};
+
+  new Chart(document.getElementById("c-scenario"),{
+    data:{labels:lbls,datasets:[
+      {type:"bar",label:"Fill rate",data:frVals,backgroundColor:barCols.map(c=>c+"cc"),
+        borderRadius:5,borderSkipped:false,yAxisID:"y",order:2},
+      slaLine(3,SLA.fill_rate,"rgba(226,75,74,.85)",`SLA (${SLA.fill_rate})`,  "y"),
+      {type:"bar",label:"Total cost",data:costVals,
+        backgroundColor:barCols.map(c=>c+"44"),
+        borderColor:barCols.map(c=>c+"aa"),borderWidth:1.5,
+        borderRadius:5,borderSkipped:false,yAxisID:"y1",order:3},
+    ]},
+    options:o,
+  });
+}
+
+/* Learning curve */
+new Chart(document.getElementById("c-learn"),{
+  type:"line",
+  data:{labels:D.episode_rewards.map((_,i)=>i+1),
+    datasets:[{data:D.episode_rewards,borderColor:PAL.blue,backgroundColor:"rgba(55,138,221,.08)",
+      fill:true,tension:.35,pointRadius:0,borderWidth:1.8}]},
+  options:baseOpts(),
+});
+
+/* Episode fill + delay dual axis */
+{
+  const o=baseOpts();
+  o.plugins.legend={display:true,labels:{color:tc(),font:{size:10},boxWidth:18}};
+  o.scales.y1={type:"linear",position:"right",ticks:{color:PAL.coral||"#D85A30",font:{size:10}},grid:{drawOnChartArea:false}};
+  const n=D.episode_fill_rates.length;
   new Chart(document.getElementById("c-epfill"),{
     type:"line",
-    data:{ labels: D.episode_fill_rates.map((_,i)=>i+1),
-      datasets:[
-        {label:"Fill rate", data:D.episode_fill_rates, borderColor:PAL.teal,
-         tension:.3, pointRadius:0, borderWidth:1.8, yAxisID:"y"},
-        {label:"Avg delay", data:D.episode_avg_delays, borderColor:PAL.coral,
-         tension:.3, pointRadius:0, borderWidth:1.8, borderDash:[4,3], yAxisID:"y1"},
-      ]},
-    options:opts,
-  });
-}
-
-/* ── Chart: Demand vs supply ─────────────────────────────────────────── */
-{
-  const lbls = D.demand_sample.map((_,i)=>i);
-  new Chart(document.getElementById("c-dsupply"),{
-    type:"line",
-    data:{ labels:lbls,
-      datasets:[
-        {label:"Demand",    data:D.demand_sample,    borderColor:PAL.blue,
-         fill:false, tension:.2, pointRadius:0, borderWidth:1.2},
-        {label:"Satisfied", data:D.satisfied_sample, borderColor:PAL.teal,
-         backgroundColor:"rgba(29,158,117,.15)", fill:true, tension:.2, pointRadius:0, borderWidth:1.2},
-      ]},
-    options:{...sharedOpts(),
-      plugins:{...sharedOpts().plugins,
-        legend:{display:true, labels:{color:textColor(), font:{size:10}}}}},
-  });
-}
-
-/* ── Chart: Inventory ────────────────────────────────────────────────── */
-{
-  const lbls = D.inventory_sample.map((_,i)=>i);
-  const dsAnnotations = {};
-  D.disruption_log.forEach((ev, idx)=>{
-    dsAnnotations["line"+idx] = {
-      type:"line", xMin:ev.step, xMax:ev.step,
-      borderColor:DCOLS[ev.type]||PAL.gray, borderWidth:1.5,
-      borderDash:[4,3],
-    };
-  });
-  new Chart(document.getElementById("c-inv"),{
-    type:"line",
-    data:{ labels:lbls,
-      datasets:[
-        {data:D.inventory_sample, borderColor:PAL.purple,
-         backgroundColor:"rgba(127,119,221,.12)", fill:true,
-         tension:.3, pointRadius:0, borderWidth:1.6},
-        {data:Array(lbls.length).fill(20), borderColor:PAL.amber,
-         borderDash:[5,4], pointRadius:0, borderWidth:1, fill:false},
-      ]},
-    options:sharedOpts(),
-  });
-}
-
-/* ── Chart: Cost breakdown stacked area ─────────────────────────────── */
-new Chart(document.getElementById("c-cost"),{
-  type:"line",
-  data:{ labels: D.prod_cost_sample.map((_,i)=>i),
-    datasets:[
-      {label:"Production", data:D.prod_cost_sample, borderColor:PAL.blue,
-       backgroundColor:"rgba(55,138,221,.35)", fill:true, tension:.2, pointRadius:0, borderWidth:0},
-      {label:"Holding",    data:D.hold_cost_sample, borderColor:PAL.teal,
-       backgroundColor:"rgba(29,158,117,.35)", fill:true, tension:.2, pointRadius:0, borderWidth:0},
-      {label:"Delay",      data:D.delay_cost_sample, borderColor:PAL.red,
-       backgroundColor:"rgba(226,75,74,.35)", fill:true, tension:.2, pointRadius:0, borderWidth:0},
+    data:{labels:D.episode_fill_rates.map((_,i)=>i+1),datasets:[
+      {label:"Fill rate",data:D.episode_fill_rates,borderColor:PAL.teal,tension:.3,pointRadius:0,borderWidth:1.8,yAxisID:"y"},
+      slaLine(n,SLA.fill_rate,"rgba(226,75,74,.8)",`SLA ${SLA.fill_rate}`,"y"),
+      {label:"Avg delay",data:D.episode_avg_delays,borderColor:"#D85A30",tension:.3,pointRadius:0,borderWidth:1.8,borderDash:[4,3],yAxisID:"y1"},
+      {...slaLine(n,SLA.avg_delay,"rgba(186,117,23,.8)",`Delay SLA ${SLA.avg_delay}`,"y1"),borderDash:[4,3]},
     ]},
-  options:{...sharedOpts(),
-    plugins:{...sharedOpts().plugins,
-      legend:{display:true, labels:{color:textColor(), font:{size:10}}}}},
+    options:o,
+  });
+}
+
+/* Demand vs supply */
+new Chart(document.getElementById("c-dsupply"),{
+  type:"line",
+  data:{labels:D.demand_sample.map((_,i)=>i),datasets:[
+    {label:"Demand",data:D.demand_sample,borderColor:PAL.blue,fill:false,tension:.2,pointRadius:0,borderWidth:1.2},
+    {label:"Satisfied",data:D.satisfied_sample,borderColor:PAL.teal,backgroundColor:"rgba(29,158,117,.12)",fill:true,tension:.2,pointRadius:0,borderWidth:1.2},
+  ]},
+  options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:true,labels:{color:tc(),font:{size:10}}}}},
 });
 
-/* ── Chart: Disruption type doughnut ─────────────────────────────────── */
+/* Inventory + safety stock band */
 {
-  const tc = D.disruption_type_counts;
-  const labels = Object.keys(tc).map(k=>k.replace(/_/g," "));
-  const values = Object.values(tc);
-  const colors = Object.keys(tc).map(k=>DCOLS[k]||PAL.gray);
+  const n=D.inventory_sample.length;
+  new Chart(document.getElementById("c-inv"),{
+    type:"line",
+    data:{labels:D.inventory_sample.map((_,i)=>i),datasets:[
+      {label:"Inventory",data:D.inventory_sample,borderColor:PAL.purple,backgroundColor:"rgba(127,119,221,.1)",fill:true,tension:.3,pointRadius:0,borderWidth:1.6},
+      {label:"Safety stock (20)",data:Array(n).fill(20),borderColor:"rgba(186,117,23,.7)",borderDash:[5,3],borderWidth:1.5,pointRadius:0,fill:{target:"origin",above:"rgba(186,117,23,.05)"},tension:0},
+    ]},
+    options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:true,labels:{color:tc(),font:{size:10}}}}},
+  });
+}
+
+/* Cost breakdown */
+new Chart(document.getElementById("c-cost"),{
+  type:"line",
+  data:{labels:D.prod_cost_sample.map((_,i)=>i),datasets:[
+    {label:"Production",data:D.prod_cost_sample,borderColor:PAL.blue,backgroundColor:"rgba(55,138,221,.3)",fill:true,tension:.2,pointRadius:0,borderWidth:0},
+    {label:"Holding",data:D.hold_cost_sample,borderColor:PAL.teal,backgroundColor:"rgba(29,158,117,.3)",fill:true,tension:.2,pointRadius:0,borderWidth:0},
+    {label:"Delay",data:D.delay_cost_sample,borderColor:PAL.red,backgroundColor:"rgba(226,75,74,.3)",fill:true,tension:.2,pointRadius:0,borderWidth:0},
+  ]},
+  options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:true,labels:{color:tc(),font:{size:10}}}}},
+});
+
+/* Doughnut */
+{
+  const tc2=D.disruption_type_counts;
   new Chart(document.getElementById("c-dtype"),{
     type:"doughnut",
-    data:{ labels, datasets:[{data:values, backgroundColor:colors,
-      borderColor:"transparent", hoverOffset:6}] },
-    options:{ responsive:true, maintainAspectRatio:true, cutout:"62%",
-      plugins:{
-        legend:{ display:true, position:"bottom",
-          labels:{ color:textColor(), font:{size:10}, padding:10 } },
-      }},
+    data:{labels:Object.keys(tc2).map(k=>k.replace(/_/g," ")),
+      datasets:[{data:Object.values(tc2),backgroundColor:Object.keys(tc2).map(k=>DCOLS[k]||PAL.gray),borderColor:"transparent",hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:true,cutout:"60%",
+      plugins:{legend:{display:true,position:"bottom",labels:{color:tc(),font:{size:10},padding:10}}}},
   });
 }
 
-/* ── Chart: Resilience radar ─────────────────────────────────────────── */
+/* Radar */
 {
-  const rm = D.resilience_metrics;
-  const fm = D.final_metrics;
-  const maxDelay = 20, maxCost = 5000;
-  const normalVals = [
-    rm.fill_normal,
-    1 - Math.min(fm["Avg Delay"]/maxDelay, 1),
-    1 - Math.min((fm["Total Cost"]/Math.max(fm["Throughput"],1)*100)/maxCost, 1),
-    1.0,
-    Math.min(rm.fill_normal, 1),
-  ];
-  const distVals = [
-    rm.fill_during_disruption,
-    1 - Math.min(fm["Avg Delay"]*1.5/maxDelay, 1),
-    1 - Math.min((fm["Total Cost"]/Math.max(fm["Throughput"],1)*120)/maxCost, 1),
-    rm.resilience_score,
-    Math.min(rm.fill_during_disruption, 1),
-  ];
+  const rm=D.resilience_metrics,fm=D.final_metrics;
+  const mxD=20,mxC=5000;
+  const nv=[rm.fill_normal,1-Math.min(fm["Avg Delay"]/mxD,1),1-Math.min((fm["Total Cost"]/Math.max(fm["Throughput"],1)*100)/mxC,1),1,Math.min(rm.fill_normal,1)];
+  const dv=[rm.fill_during_disruption,1-Math.min(fm["Avg Delay"]*1.5/mxD,1),1-Math.min((fm["Total Cost"]/Math.max(fm["Throughput"],1)*120)/mxC,1),rm.resilience_score,Math.min(rm.fill_during_disruption,1)];
   new Chart(document.getElementById("c-radar"),{
     type:"radar",
-    data:{
-      labels:["Fill rate","Low delay","Cost eff.","Resilience","Throughput"],
-      datasets:[
-        {label:"Normal",    data:normalVals, borderColor:PAL.teal,
-         backgroundColor:"rgba(29,158,117,.2)", pointRadius:4, borderWidth:2},
-        {label:"Disrupted", data:distVals,   borderColor:PAL.red,
-         backgroundColor:"rgba(226,75,74,.15)", pointRadius:4, borderWidth:2},
-      ]},
-    options:{ responsive:true, maintainAspectRatio:true,
-      scales:{ r:{ min:0, max:1, ticks:{stepSize:.25, color:textColor(), font:{size:9}},
-        grid:{color:gridColor()}, pointLabels:{color:textColor(), font:{size:10}} }},
-      plugins:{ legend:{ display:true, labels:{ color:textColor(), font:{size:10} } } } },
+    data:{labels:["Fill rate","Low delay","Cost eff.","Resilience","Throughput"],datasets:[
+      {label:"Normal",data:nv,borderColor:PAL.teal,backgroundColor:"rgba(29,158,117,.18)",pointRadius:3,borderWidth:2},
+      {label:"Disrupted",data:dv,borderColor:PAL.red,backgroundColor:"rgba(226,75,74,.12)",pointRadius:3,borderWidth:2},
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,
+      scales:{r:{min:0,max:1,ticks:{stepSize:.25,color:tc(),font:{size:9}},grid:{color:gc()},pointLabels:{color:tc(),font:{size:10}}}},
+      plugins:{legend:{display:true,labels:{color:tc(),font:{size:10}}}}},
   });
 }
 
-/* ── Disruption log table ─────────────────────────────────────────────── */
-const tbody = document.getElementById("disruption-tbody");
-if (!D.disruption_log.length) {
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#888">No disruptions recorded</td></tr>`;
-} else {
+/* Disruption log table */
+const tb=document.getElementById("dtbody");
+if(!D.disruption_log.length){
+  tb.innerHTML=`<tr><td colspan="5" style="text-align:center;color:#888;padding:16px">No disruptions recorded</td></tr>`;
+}else{
   D.disruption_log.forEach(ev=>{
-    const sevClass = ev.severity==="high" ? "sev-high" : "sev-medium";
-    tbody.innerHTML += `<tr>
+    tb.innerHTML+=`<tr>
       <td>${ev.step}</td>
-      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;
-          background:${DCOLS[ev.type]||"#888"};margin-right:6px"></span>${ev.type.replace(/_/g," ")}</td>
-      <td>${ev.description}</td>
-      <td>${ev.duration} steps</td>
-      <td><span class="${sevClass}">${ev.severity}</span></td>
+      <td><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${DCOLS[ev.type]||"#888"};margin-right:5px"></span>${ev.type.replace(/_/g," ")}</td>
+      <td>${ev.description}</td><td>${ev.duration} steps</td>
+      <td><span class="${ev.severity==="high"?"sev-h":"sev-m"}">${ev.severity}</span></td>
     </tr>`;
   });
 }
 
-/* ── Theme toggle ─────────────────────────────────────────────────────── */
-function toggleTheme() {
+/* Theme */
+function toggleTheme(){
   document.body.classList.toggle("dark");
-  document.getElementById("theme-btn").textContent =
-    document.body.classList.contains("dark") ? "Light mode" : "Dark mode";
+  document.getElementById("theme-btn").textContent=isDark()?"Light mode":"Dark mode";
+  Object.values(Chart.instances||{}).forEach(c=>{
+    if(!c.options?.scales)return;
+    ["x","y","y1","r"].forEach(ax=>{
+      if(!c.options.scales[ax])return;
+      if(c.options.scales[ax].ticks)c.options.scales[ax].ticks.color=tc();
+      if(c.options.scales[ax].grid)c.options.scales[ax].grid.color=gc();
+      if(c.options.scales[ax].pointLabels)c.options.scales[ax].pointLabels.color=tc();
+      if(c.options.scales[ax].title)c.options.scales[ax].title.color=tc();
+    });
+    if(c.options.plugins?.legend?.labels)c.options.plugins.legend.labels.color=tc();
+    c.update();
+  });
+}
+
+/* Export CSV */
+function exportCSV(){
+  const fm=D.final_metrics,rm=D.resilience_metrics,sc=D.scenario_comparison;
+  const rows=[
+    ["Smart Manufacturing ML-MAS — Operational Report"],
+    ["Generated",D.meta.trained_at],["Model",D.meta.model],["Dataset",D.meta.dataset],["Training Episodes",D.meta.episodes],
+    [],
+    ["SLA COMPLIANCE"],
+    ["Metric","Value","SLA Target","Status"],
+    ["Fill Rate",fm["Fill Rate"].toFixed(4),SLA.fill_rate,fm["Fill Rate"]>=SLA.fill_rate?"PASS":"FAIL"],
+    ["Avg Delay",fm["Avg Delay"].toFixed(4),SLA.avg_delay,fm["Avg Delay"]<=SLA.avg_delay?"PASS":"FAIL"],
+    [],
+    ["FINAL METRICS (RL system)"],
+    ["Fill Rate",fm["Fill Rate"].toFixed(4)],["Avg Delay",fm["Avg Delay"].toFixed(4)],
+    ["Total Cost",Math.round(fm["Total Cost"])],["Throughput",Math.round(fm["Throughput"])],
+    [],
+    ["RESILIENCE METRICS"],
+    ["Resilience Score",rm.resilience_score],["Avg Recovery Steps",rm.avg_recovery_steps],
+    ["Disruption Rate",rm.disruption_rate],["Fill During Disruption",rm.fill_during_disruption],["Fill Normal",rm.fill_normal],
+    [],
+    ["SCENARIO COMPARISON"],
+    ["Scenario","Fill Rate","Avg Delay","Total Cost","Cost Saving vs Baseline","SLA"],
+    ...Object.values(sc).map(s=>[s.label,s.fill_rate.toFixed(4),s.avg_delay.toFixed(2),Math.round(s.total_cost),s.cost_saving_pct>0?`${s.cost_saving_pct.toFixed(1)}%`:"baseline",s.sla_pass?"PASS":"FAIL"]),
+    [],
+    ["DISRUPTION SUMMARY"],
+    ["Total Events",D.meta.total_events],
+    ...Object.entries(D.disruption_type_counts).map(([k,v])=>[k.replace(/_/g," "),v]),
+  ];
+  const csv=rows.map(r=>r.map(c=>{const s=String(c??'');return s.includes(",")||s.includes('"')?`"${s.replace(/"/g,'""')}"`:`${s}`}).join(",")).join("\r\n");
+  const a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([csv],{type:"text/csv"})),download:`ml-mas-report-${new Date().toISOString().slice(0,10)}.csv`});
+  a.click();URL.revokeObjectURL(a.href);
 }
 </script>
 </body>
-</html> 
+</html>  
