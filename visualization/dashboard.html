@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Manufacturing ML-MAS Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ── Reset & base ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #f0ede8;
+  color: #1a1a18;
+  transition: background .25s, color .25s;
+}
+body.dark {
+  background: #141413;
+  color: #d4d2c8;
+}
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+header {
+  background: #1a1a2e;
+  color: #e8e6dc;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+header p  { font-size: 12px; opacity: .65; margin-top: 2px; }
+.main { max-width: 1280px; margin: 0 auto; padding: 20px 20px 40px; }
+.section-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .07em; color: #888780; margin: 24px 0 10px;
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border: 0.5px solid rgba(0,0,0,.1);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+body.dark .card {
+  background: #1e1e1c;
+  border-color: rgba(255,255,255,.08);
+}
+
+/* ── KPI row ────────────────────────────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.kpi-card {
+  background: #f7f5f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+}
+body.dark .kpi-card { background: #252523; }
+.kpi-label { font-size: 11px; color: #888780; margin-bottom: 4px; }
+.kpi-value { font-size: 26px; font-weight: 600; }
+.kpi-sub   { font-size: 11px; color: #888780; margin-top: 2px; }
+.c-teal   { color: #0f7a5a; } body.dark .c-teal   { color: #3bcfa0; }
+.c-blue   { color: #1458a0; } body.dark .c-blue   { color: #60a8e8; }
+.c-amber  { color: #9a5c0a; } body.dark .c-amber  { color: #f5b840; }
+.c-purple { color: #4338a0; } body.dark .c-purple { color: #a09af5; }
+
+/* ── Chart grids ────────────────────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.chart-title { font-size: 12px; font-weight: 600; color: #5c5b57; margin-bottom: 12px; }
+body.dark .chart-title { color: #a0a09a; }
+.chart-wrap { position: relative; }
+
+/* ── Disruption badge row ───────────────────────────────────────────────── */
+.status-bar {
+  background: #1e1c30;
+  color: #b8b4d8;
+  font-size: 12px;
+  padding: 7px 28px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+}
+.dot-sm { width: 7px; height: 7px; border-radius: 50%; }
+
+/* ── Disruption table ───────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th {
+  text-align: left; padding: 7px 10px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  font-weight: 600; font-size: 11px; color: #888780;
+}
+td { padding: 7px 10px; border-bottom: 0.5px solid rgba(0,0,0,.06); }
+body.dark th { border-color: rgba(255,255,255,.07); }
+body.dark td { border-color: rgba(255,255,255,.05); }
+tr:last-child td { border-bottom: none; }
+.sev-high   { background: #fde8e8; color: #9a2020; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.sev-medium { background: #fef3da; color: #8a5a00; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+body.dark .sev-high   { background: #3d1818; color: #f09090; }
+body.dark .sev-medium { background: #3d2e0a; color: #f0c060; }
+
+/* ── Theme toggle ────────────────────────────────────────────────────────── */
+#theme-btn {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #e8e6dc;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+#theme-btn:hover { background: rgba(255,255,255,.2); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2   { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Smart Manufacturing ML-MAS</h1>
+    <p id="meta-line">Loading...</p>
+  </div>
+  <button id="theme-btn" onclick="toggleTheme()">Dark mode</button>
+</header>
+
+<div class="status-bar" id="status-bar"></div>
+
+<div class="main">
+
+  <div class="section-title">Key performance indicators</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Fill rate</div>
+      <div class="kpi-value c-teal"   id="kpi-fill">—</div>
+      <div class="kpi-sub">target 0.90+</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg delay</div>
+      <div class="kpi-value c-blue"   id="kpi-delay">—</div>
+      <div class="kpi-sub">units / step</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Resilience score</div>
+      <div class="kpi-value c-purple" id="kpi-res">—</div>
+      <div class="kpi-sub">disrupted ÷ normal fill</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Throughput</div>
+      <div class="kpi-value c-amber"  id="kpi-tput">—</div>
+      <div class="kpi-sub">units satisfied</div>
+    </div>
+  </div>
+
+  <div class="section-title">Training progress</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="chart-title">RL learning curve</div>
+      <div class="chart-wrap"><canvas id="c-learn" height="180"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chart-title">Fill rate &amp; delay per episode</div>
+      <div class="chart-wrap"><canvas id="c-epfill" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title">Last episode — supply chain</div>
+  <div class="card">
+    <div class="chart-title">Demand vs satisfied supply</div>
+    <div class="chart-wrap"><canvas id="c-dsupply" height="120"></canvas></div>
+  </div>
+
+  <div class="section-title">Inventory &amp; costs</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="chart-title">Inventory levels</div>
+      <div class="chart-wrap"><canvas id="c-inv" height="180"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chart-title">Cost breakdown per step</div>
+      <div class="chart-wrap"><canvas id="c-cost" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title">Disruption analysis</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="chart-title">Disruption event distribution</div>
+      <div class="chart-wrap" style="max-width:320px;margin:auto">
+        <canvas id="c-dtype" height="240"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chart-title">Resilience — normal vs disrupted</div>
+      <div class="chart-wrap"><canvas id="c-radar" height="240"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title">Disruption event log</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Step</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Duration</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody id="disruption-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ── Placeholder data (replaced by export_dashboard_data.py) ─────────── */
+/* __INJECT_DATA__ */
+
+/* ── Fallback sample data if not injected ────────────────────────────── */
+if (typeof window.DASHBOARD_DATA === "undefined") {
+  const ep = Array.from({length:100}, (_,i)=>4250000+i*2400+Math.random()*800);
+  const fr = Array.from({length:100}, (_,i)=>Math.min(0.98, 0.82+i*0.0015+Math.random()*.01));
+  const dl = Array.from({length:100}, (_,i)=>Math.max(0.1, 14-i*.14+Math.random()*.5));
+  const n  = 500;
+  const dem = Array.from({length:n}, ()=>20+Math.random()*130);
+  const sat = dem.map(d=>d*(0.9+Math.random()*.1));
+  const inv = Array.from({length:n}, (_,i)=>80+Math.sin(i/40)*40+Math.random()*20);
+  window.DASHBOARD_DATA = {
+    meta: { trained_at:"sample data", episodes:100, model:"Q-Learning", dataset:"demand.csv" },
+    final_metrics: { "Fill Rate":0.97,"Avg Delay":0.24,"Total Cost":16300000,"Throughput":10423000 },
+    resilience_metrics: { resilience_score:0.89, avg_recovery_steps:4.2, disruption_rate:0.11,
+                          fill_during_disruption:0.87, fill_normal:0.97 },
+    episode_rewards: ep,
+    episode_fill_rates: fr,
+    episode_avg_delays: dl,
+    demand_sample: dem,
+    satisfied_sample: sat,
+    inventory_sample: inv,
+    prod_cost_sample: Array.from({length:n}, ()=>40+Math.random()*40),
+    hold_cost_sample: Array.from({length:n}, ()=>10+Math.random()*30),
+    delay_cost_sample: Array.from({length:n}, ()=>Math.random()*20),
+    disruption_log: [
+      {step:320, type:"supplier_failure",    duration:5, description:"Supplier failure",    severity:"high"},
+      {step:740, type:"demand_surge",        duration:3, description:"Demand surge",        severity:"medium"},
+      {step:1100,type:"logistics_breakdown", duration:4, description:"Logistics breakdown", severity:"high"},
+      {step:1540,type:"factory_slowdown",    duration:2, description:"Factory slowdown",    severity:"medium"},
+      {step:2080,type:"demand_surge",        duration:4, description:"Demand surge",        severity:"medium"},
+    ],
+    disruption_type_counts: { supplier_failure:3, demand_surge:6, logistics_breakdown:2, factory_slowdown:4 },
+  };
+}
+
+const D = window.DASHBOARD_DATA;
+
+/* ── Palette ─────────────────────────────────────────────────────────── */
+const PAL = {
+  blue:   "#378ADD",
+  teal:   "#1D9E75",
+  amber:  "#EF9F27",
+  purple: "#7F77DD",
+  coral:  "#D85A30",
+  gray:   "#888780",
+  red:    "#E24B4A",
+};
+const DCOLS = {
+  supplier_failure:    PAL.red,
+  demand_surge:        PAL.amber,
+  logistics_breakdown: PAL.blue,
+  factory_slowdown:    PAL.purple,
+};
+const gridColor = () => document.body.classList.contains("dark")
+  ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
+const textColor = () => document.body.classList.contains("dark") ? "#a0a09a" : "#5c5b57";
+
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+function fmt(v, dp=2) { return typeof v==="number" ? v.toFixed(dp) : v; }
+function fmtM(v) {
+  if (v>=1e6) return (v/1e6).toFixed(2)+"M";
+  if (v>=1e3) return (v/1e3).toFixed(1)+"K";
+  return Math.round(v).toLocaleString();
+}
+function sharedOpts(title="") {
+  return {
+    responsive:true, maintainAspectRatio:true,
+    plugins:{
+      legend:{display:false},
+      title: title ? {display:true, text:title, font:{size:11}, color:textColor()} : {display:false},
+    },
+    scales:{
+      x:{ ticks:{maxTicksLimit:8, color:textColor(), font:{size:10}},
+          grid:{color:gridColor()} },
+      y:{ ticks:{maxTicksLimit:6, color:textColor(), font:{size:10}},
+          grid:{color:gridColor()} },
+    },
+  };
+}
+
+/* ── Meta bar ────────────────────────────────────────────────────────── */
+document.getElementById("meta-line").textContent =
+  `Trained: ${D.meta.trained_at} · ${D.meta.episodes} episodes · ${D.meta.dataset}`;
+
+/* ── Status bar ─────────────────────────────────────────────────────── */
+const sb = document.getElementById("status-bar");
+const stats = [
+  ["Fill rate",       fmt(D.final_metrics["Fill Rate"],4),   PAL.teal],
+  ["Resilience",      fmt(D.resilience_metrics.resilience_score,3), PAL.purple],
+  ["Disruption rate", fmt(D.resilience_metrics.disruption_rate*100,1)+"%", PAL.amber],
+  ["Avg recovery",    fmt(D.resilience_metrics.avg_recovery_steps,1)+" steps", PAL.blue],
+];
+stats.forEach(([lbl,val,col])=>{
+  sb.innerHTML += `<span class="status-pill">
+    <span class="dot-sm" style="background:${col}"></span>
+    <span style="opacity:.7">${lbl}:</span>&nbsp;<strong>${val}</strong>
+  </span>`;
+});
+
+/* ── KPI cards ───────────────────────────────────────────────────────── */
+document.getElementById("kpi-fill").textContent  = fmt(D.final_metrics["Fill Rate"],3);
+document.getElementById("kpi-delay").textContent = fmt(D.final_metrics["Avg Delay"],2);
+document.getElementById("kpi-res").textContent   = fmt(D.resilience_metrics.resilience_score,3);
+document.getElementById("kpi-tput").textContent  = fmtM(D.final_metrics["Throughput"]);
+
+/* ── Chart: Learning curve ───────────────────────────────────────────── */
+new Chart(document.getElementById("c-learn"), {
+  type:"line",
+  data:{ labels: D.episode_rewards.map((_,i)=>i+1),
+    datasets:[{data:D.episode_rewards, borderColor:PAL.blue, backgroundColor:"rgba(55,138,221,.1)",
+    fill:true, tension:.35, pointRadius:0, borderWidth:1.8}] },
+  options:{...sharedOpts(), plugins:{...sharedOpts().plugins,
+    title:{display:true,text:"Episode reward",font:{size:11},color:textColor()}}},
+});
+
+/* ── Chart: Fill rate + delay per episode (dual axis) ───────────────── */
+{
+  const opts = sharedOpts();
+  opts.plugins.legend = {display:true, labels:{color:textColor(), font:{size:10}}};
+  opts.scales.y1 = { type:"linear", position:"right",
+    ticks:{color:PAL.coral, font:{size:10}}, grid:{drawOnChartArea:false} };
+  new Chart(document.getElementById("c-epfill"),{
+    type:"line",
+    data:{ labels: D.episode_fill_rates.map((_,i)=>i+1),
+      datasets:[
+        {label:"Fill rate", data:D.episode_fill_rates, borderColor:PAL.teal,
+         tension:.3, pointRadius:0, borderWidth:1.8, yAxisID:"y"},
+        {label:"Avg delay", data:D.episode_avg_delays, borderColor:PAL.coral,
+         tension:.3, pointRadius:0, borderWidth:1.8, borderDash:[4,3], yAxisID:"y1"},
+      ]},
+    options:opts,
+  });
+}
+
+/* ── Chart: Demand vs supply ─────────────────────────────────────────── */
+{
+  const lbls = D.demand_sample.map((_,i)=>i);
+  new Chart(document.getElementById("c-dsupply"),{
+    type:"line",
+    data:{ labels:lbls,
+      datasets:[
+        {label:"Demand",    data:D.demand_sample,    borderColor:PAL.blue,
+         fill:false, tension:.2, pointRadius:0, borderWidth:1.2},
+        {label:"Satisfied", data:D.satisfied_sample, borderColor:PAL.teal,
+         backgroundColor:"rgba(29,158,117,.15)", fill:true, tension:.2, pointRadius:0, borderWidth:1.2},
+      ]},
+    options:{...sharedOpts(),
+      plugins:{...sharedOpts().plugins,
+        legend:{display:true, labels:{color:textColor(), font:{size:10}}}}},
+  });
+}
+
+/* ── Chart: Inventory ────────────────────────────────────────────────── */
+{
+  const lbls = D.inventory_sample.map((_,i)=>i);
+  const dsAnnotations = {};
+  D.disruption_log.forEach((ev, idx)=>{
+    dsAnnotations["line"+idx] = {
+      type:"line", xMin:ev.step, xMax:ev.step,
+      borderColor:DCOLS[ev.type]||PAL.gray, borderWidth:1.5,
+      borderDash:[4,3],
+    };
+  });
+  new Chart(document.getElementById("c-inv"),{
+    type:"line",
+    data:{ labels:lbls,
+      datasets:[
+        {data:D.inventory_sample, borderColor:PAL.purple,
+         backgroundColor:"rgba(127,119,221,.12)", fill:true,
+         tension:.3, pointRadius:0, borderWidth:1.6},
+        {data:Array(lbls.length).fill(20), borderColor:PAL.amber,
+         borderDash:[5,4], pointRadius:0, borderWidth:1, fill:false},
+      ]},
+    options:sharedOpts(),
+  });
+}
+
+/* ── Chart: Cost breakdown stacked area ─────────────────────────────── */
+new Chart(document.getElementById("c-cost"),{
+  type:"line",
+  data:{ labels: D.prod_cost_sample.map((_,i)=>i),
+    datasets:[
+      {label:"Production", data:D.prod_cost_sample, borderColor:PAL.blue,
+       backgroundColor:"rgba(55,138,221,.35)", fill:true, tension:.2, pointRadius:0, borderWidth:0},
+      {label:"Holding",    data:D.hold_cost_sample, borderColor:PAL.teal,
+       backgroundColor:"rgba(29,158,117,.35)", fill:true, tension:.2, pointRadius:0, borderWidth:0},
+      {label:"Delay",      data:D.delay_cost_sample, borderColor:PAL.red,
+       backgroundColor:"rgba(226,75,74,.35)", fill:true, tension:.2, pointRadius:0, borderWidth:0},
+    ]},
+  options:{...sharedOpts(),
+    plugins:{...sharedOpts().plugins,
+      legend:{display:true, labels:{color:textColor(), font:{size:10}}}}},
+});
+
+/* ── Chart: Disruption type doughnut ─────────────────────────────────── */
+{
+  const tc = D.disruption_type_counts;
+  const labels = Object.keys(tc).map(k=>k.replace(/_/g," "));
+  const values = Object.values(tc);
+  const colors = Object.keys(tc).map(k=>DCOLS[k]||PAL.gray);
+  new Chart(document.getElementById("c-dtype"),{
+    type:"doughnut",
+    data:{ labels, datasets:[{data:values, backgroundColor:colors,
+      borderColor:"transparent", hoverOffset:6}] },
+    options:{ responsive:true, maintainAspectRatio:true, cutout:"62%",
+      plugins:{
+        legend:{ display:true, position:"bottom",
+          labels:{ color:textColor(), font:{size:10}, padding:10 } },
+      }},
+  });
+}
+
+/* ── Chart: Resilience radar ─────────────────────────────────────────── */
+{
+  const rm = D.resilience_metrics;
+  const fm = D.final_metrics;
+  const maxDelay = 20, maxCost = 5000;
+  const normalVals = [
+    rm.fill_normal,
+    1 - Math.min(fm["Avg Delay"]/maxDelay, 1),
+    1 - Math.min((fm["Total Cost"]/Math.max(fm["Throughput"],1)*100)/maxCost, 1),
+    1.0,
+    Math.min(rm.fill_normal, 1),
+  ];
+  const distVals = [
+    rm.fill_during_disruption,
+    1 - Math.min(fm["Avg Delay"]*1.5/maxDelay, 1),
+    1 - Math.min((fm["Total Cost"]/Math.max(fm["Throughput"],1)*120)/maxCost, 1),
+    rm.resilience_score,
+    Math.min(rm.fill_during_disruption, 1),
+  ];
+  new Chart(document.getElementById("c-radar"),{
+    type:"radar",
+    data:{
+      labels:["Fill rate","Low delay","Cost eff.","Resilience","Throughput"],
+      datasets:[
+        {label:"Normal",    data:normalVals, borderColor:PAL.teal,
+         backgroundColor:"rgba(29,158,117,.2)", pointRadius:4, borderWidth:2},
+        {label:"Disrupted", data:distVals,   borderColor:PAL.red,
+         backgroundColor:"rgba(226,75,74,.15)", pointRadius:4, borderWidth:2},
+      ]},
+    options:{ responsive:true, maintainAspectRatio:true,
+      scales:{ r:{ min:0, max:1, ticks:{stepSize:.25, color:textColor(), font:{size:9}},
+        grid:{color:gridColor()}, pointLabels:{color:textColor(), font:{size:10}} }},
+      plugins:{ legend:{ display:true, labels:{ color:textColor(), font:{size:10} } } } },
+  });
+}
+
+/* ── Disruption log table ─────────────────────────────────────────────── */
+const tbody = document.getElementById("disruption-tbody");
+if (!D.disruption_log.length) {
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#888">No disruptions recorded</td></tr>`;
+} else {
+  D.disruption_log.forEach(ev=>{
+    const sevClass = ev.severity==="high" ? "sev-high" : "sev-medium";
+    tbody.innerHTML += `<tr>
+      <td>${ev.step}</td>
+      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;
+          background:${DCOLS[ev.type]||"#888"};margin-right:6px"></span>${ev.type.replace(/_/g," ")}</td>
+      <td>${ev.description}</td>
+      <td>${ev.duration} steps</td>
+      <td><span class="${sevClass}">${ev.severity}</span></td>
+    </tr>`;
+  });
+}
+
+/* ── Theme toggle ─────────────────────────────────────────────────────── */
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  document.getElementById("theme-btn").textContent =
+    document.body.classList.contains("dark") ? "Light mode" : "Dark mode";
+}
+</script>
+</body>
+</html> 
