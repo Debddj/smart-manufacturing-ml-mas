@@ -2,38 +2,45 @@ import random
 
 DISRUPTION_TYPES = {
     "supplier_failure": {
-        "probability":    0.04,
-        "supply_factor":  0.10,   # supply drops to 10%
+        "probability":    0.001,   # was 0.04 — fires ~182 times over 182K steps
+        "supply_factor":  0.10,
         "duration_range": (3, 8),
         "description":    "Supplier failure",
         "severity":       "high",
         "color":          "red",
     },
     "demand_surge": {
-        "probability":     0.06,
-        "demand_factor":   2.0,   # demand doubles
+        "probability":     0.0015,  # was 0.06
+        "demand_factor":   2.0,
         "duration_range":  (2, 5),
         "description":     "Demand surge",
         "severity":        "medium",
         "color":           "orange",
     },
     "logistics_breakdown": {
-        "probability":       0.03,
-        "capacity_factor":   0.20,  # logistics down to 20%
+        "probability":       0.0008,  # was 0.03
+        "capacity_factor":   0.20,
         "duration_range":    (2, 6),
         "description":       "Logistics breakdown",
         "severity":          "high",
         "color":             "blue",
     },
     "factory_slowdown": {
-        "probability":         0.05,
-        "production_factor":   0.40,  # production at 40%
+        "probability":         0.0012,  # was 0.05
+        "production_factor":   0.40,
         "duration_range":      (1, 4),
         "description":         "Factory slowdown",
         "severity":            "medium",
         "color":               "purple",
     },
 }
+
+# Expected disruptions per 182K-step episode (approx):
+#   supplier_failure:    ~182 triggers × avg 5.5 steps = ~5% of steps
+#   demand_surge:        ~273 triggers × avg 3.5 steps = ~5% of steps
+#   logistics_breakdown: ~146 triggers × avg 4.0 steps = ~3% of steps
+#   factory_slowdown:    ~218 triggers × avg 2.5 steps = ~3% of steps
+#   Combined disruption rate target: ~15-20% of all steps
 
 
 class DisruptionEngine:
@@ -101,12 +108,6 @@ class DisruptionEngine:
         logistics_cap: float,
         production: float,
     ) -> dict:
-        """
-        Return a dict of (potentially disrupted) execution parameters.
-        Call after tick() each step.
-
-        Returns keys: demand, supply, logistics_cap, production
-        """
         out = {
             "demand":        demand,
             "supply":        supply,
@@ -135,6 +136,6 @@ class DisruptionEngine:
         return list(self._active.keys())
 
     def reset(self):
-        """Reset state for a new episode (keeps the log intact)."""
+        """Reset active disruptions for a new episode. Keeps the full log intact."""
         self._active = {}
-        self._step = 0  
+        self._step = 0
