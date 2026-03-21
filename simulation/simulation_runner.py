@@ -17,7 +17,6 @@ from visualization.export_dashboard_data import export_dashboard_data
 SLA_FILL_RATE = 0.90
 SLA_AVG_DELAY = 5.0
 
-
 def _evaluate_episode(rl_agent, predictions, disruptions_enabled, seed=999):
     env       = SupplyChainEnvironment()
     warehouse = WarehouseAgent()
@@ -133,58 +132,112 @@ def _build_scenario_comparison(rl_agent, predictions, baseline_metrics):
 
 
 def train_rl_agent(predictions, episodes=100, disruptions_enabled=True):
+    from simulation.logger import MASLogger
+    logger = MASLogger()
 
     rl_agent = QLearningAgent()
-    engine   = DisruptionEngine(enabled=disruptions_enabled, seed=42)
+    engine = DisruptionEngine(enabled=disruptions_enabled, seed=42)
 
     episode_rewards, episode_fill_rates, episode_avg_delays = [], [], []
     last_demands = last_satisfied = last_inventory = []
     last_fill_per_step = last_prod_costs = last_hold_costs = last_delay_costs = []
 
     for ep in range(episodes):
-        env       = SupplyChainEnvironment()
+        env = SupplyChainEnvironment()
         warehouse = WarehouseAgent()
         logistics = LogisticsAgent()
-        supplier  = SupplierAgent()
+        supplier = SupplierAgent()
         engine.reset()
 
-        total_reward   = 0
-        costs          = []
-        demands        = []
+        previous_inventory = env.inventory
+
+        total_reward = 0
+        costs = []
+        demands = []
         satisfied_list = []
         inventory_hist = []
-        fill_per_step  = []
+        fill_per_step = []
         prod_costs, hold_costs, delay_costs_ep = [], [], []
-        original_cap   = logistics.capacity
+        original_cap = logistics.capacity
 
         for day in range(len(predictions) - 1):
-            demand      = float(predictions[day])
+            demand = float(predictions[day])
             next_demand = float(predictions[day + 1])
+
             engine.tick(day)
             raw_supply = supplier.act()
-            action_idx = rl_agent.choose_action(env.inventory, demand)
-            disrupted  = engine.apply(
-                demand=demand, supply=raw_supply,
+
+            # RL decision
+            current_inv = env.inventory
+            action_idx = rl_agent.choose_action(current_inv, demand)
+
+            disrupted = engine.apply(
+                demand=demand,
+                supply=raw_supply,
                 logistics_cap=logistics.capacity,
                 production=rl_agent.actions[action_idx],
             )
-            actual_demand      = disrupted["demand"]
+
+            actual_demand = disrupted["demand"]
             logistics.capacity = disrupted["logistics_cap"]
-            current_inv        = env.inventory
-            action_idx         = rl_agent.choose_action(current_inv, actual_demand)
-            actual_prod        = min(rl_agent.actions[action_idx], disrupted["supply"])
-            shipment           = warehouse.act(env.inventory + actual_prod, actual_demand)
-            transport          = logistics.act(shipment)
+
+            actual_prod = min(rl_agent.actions[action_idx], disrupted["supply"])
+
+            shipment = warehouse.act(env.inventory + actual_prod, actual_demand)
+            transport = logistics.act(shipment)
+
             satisfied, cost, delay = env.step(actual_prod, transport, actual_demand)
 
+            # ===================== LOGGING =====================
+            ENABLE_LOGGING = (ep == episodes - 1)
+
+            if ENABLE_LOGGING:
+
+                # 🔴 CRITICAL: Only real disruptions
+                if disrupted["demand"] > demand * 1.3:
+                    logger.log(day, "CRITICAL", "DisruptionEngine",
+                        f"Demand spike: {demand:.1f} → {actual_demand:.1f}")
+
+                # 🟡 WARNING: Only severe inventory shortage
+                if env.inventory <= 5:
+                    logger.log(day, "WARNING", "WarehouseAgent",
+                        f"Stockout risk: inventory={env.inventory:.1f}")
+
+                # 🔵 ACTION: Only when production changes significantly
+                if abs(actual_prod - demand) > 40:
+                    logger.log(day, "ACTION", "FactoryAgent",
+                        f"Adjusted production: {actual_prod} (Demand: {actual_demand:.1f})")
+
+                # 🔵 INFO: Only severe logistics bottleneck
+                if shipment > 0 and transport / shipment < 0.5:
+                    logger.log(day, "INFO", "LogisticsAgent",
+                        f"Severe bottleneck: {transport}/{shipment}")
+
+                # 🟢 RESOLVED: Only when recovering from crisis
+                if env.inventory > 50 and delay == 0 and previous_inventory <= 10:
+                    logger.log(day, "RESOLVED", "SupplyChainEnv",
+                        f"Recovered: inventory={env.inventory:.1f}")
+
+            # ===================================================
+
+            # Cost breakdown
             prod_costs.append(actual_prod * 1.0)
             hold_costs.append(env.inventory * 0.5)
             delay_costs_ep.append(delay * 5)
 
+            # Reward + learning
             reward = compute_reward(satisfied, actual_demand, cost, production=actual_prod)
             total_reward += reward
-            rl_agent.update(current_inv, actual_demand, action_idx, reward,
-                            env.inventory, next_demand)
+
+            rl_agent.update(
+                current_inv,
+                actual_demand,
+                action_idx,
+                reward,
+                env.inventory,
+                next_demand
+            )
+
             logistics.capacity = original_cap
 
             costs.append(cost)
@@ -194,18 +247,20 @@ def train_rl_agent(predictions, episodes=100, disruptions_enabled=True):
             fill_per_step.append(satisfied / (actual_demand + 1e-9))
 
         rl_agent.epsilon = max(0.01, rl_agent.epsilon * 0.97)
+
         ep_m = compute_metrics(costs, demands, satisfied_list)
+
         episode_rewards.append(total_reward)
         episode_fill_rates.append(ep_m["Fill Rate"])
         episode_avg_delays.append(ep_m["Avg Delay"])
 
-        last_demands       = demands
-        last_satisfied     = satisfied_list
-        last_inventory     = inventory_hist
+        last_demands = demands
+        last_satisfied = satisfied_list
+        last_inventory = inventory_hist
         last_fill_per_step = fill_per_step
-        last_prod_costs    = prod_costs
-        last_hold_costs    = hold_costs
-        last_delay_costs   = delay_costs_ep
+        last_prod_costs = prod_costs
+        last_hold_costs = hold_costs
+        last_delay_costs = delay_costs_ep
 
         if (ep + 1) % 10 == 0:
             disc = f" | events: {len(engine.disruption_log)}" if disruptions_enabled else ""
@@ -213,66 +268,59 @@ def train_rl_agent(predictions, episodes=100, disruptions_enabled=True):
                   f"Fill:{ep_m['Fill Rate']:.3f} | Delay:{ep_m['Avg Delay']:.2f} | "
                   f"ε:{rl_agent.epsilon:.3f}{disc}")
 
-    # Post-training ────────────────────────────────────────────────────────────
+    previous_inventory = env.inventory
+    # ================= POST TRAINING =================
+
     print("\nRunning post-training scenario comparison...")
-    baseline_metrics    = run_baseline_evaluation(predictions)
-    scenario_comparison = _build_scenario_comparison(rl_agent, predictions, baseline_metrics)
+    baseline_metrics = run_baseline_evaluation(predictions)
+    scenario_comparison = _build_scenario_comparison(
+        rl_agent, predictions, baseline_metrics
+    )
 
     for sc in scenario_comparison.values():
-        sla  = "PASS" if sc["sla_pass"] else "FAIL"
-        save = f"  saves {sc['cost_saving_pct']:.1f}% cost vs baseline" if sc["cost_saving_pct"] else ""
-        print(f"  {sc['label']:<30} fill={sc['fill_rate']:.3f}  "
-              f"cost={sc['total_cost']:,.0f}  SLA:{sla}{save}")
+        sla = "PASS" if sc["sla_pass"] else "FAIL"
+        save = f" saves {sc['cost_saving_pct']:.1f}% cost vs baseline" if sc["cost_saving_pct"] else ""
+        print(f" {sc['label']:<30} fill={sc['fill_rate']:.3f} "
+              f"cost={sc['total_cost']:,.0f} SLA:{sla}{save}")
 
-    final_metrics      = compute_metrics(last_delay_costs, last_demands, last_satisfied)
+    final_metrics = compute_metrics(last_delay_costs, last_demands, last_satisfied)
     resilience_metrics = compute_resilience_metrics(
         last_fill_per_step, engine.disruption_log, len(last_fill_per_step)
     )
 
     print("\nFinal Metrics:")
     for k, v in final_metrics.items():
-        print(f"  {k}: {round(v, 3)}")
+        print(f" {k}: {round(v, 3)}")
 
-    # Plots ────────────────────────────────────────────────────────────────────
     print("\nGenerating plots...")
     plot_learning_curve(episode_rewards)
     plot_demand_vs_supply(last_demands, last_satisfied)
     plot_inventory_levels(last_inventory, engine.disruption_log)
-    plot_disruption_timeline(engine.disruption_log, last_fill_per_step,
-                             last_demands, last_satisfied)
+    plot_disruption_timeline(
+        engine.disruption_log, last_fill_per_step,
+        last_demands, last_satisfied
+    )
     plot_cost_breakdown(last_prod_costs, last_hold_costs, last_delay_costs)
     plot_episode_metrics(episode_fill_rates, episode_avg_delays)
 
-    normal_m = {
-        "fill_rate":        resilience_metrics["fill_normal"],
-        "avg_delay":        final_metrics["Avg Delay"],
-        "cost_per_step":    final_metrics["Total Cost"] / max(len(last_demands), 1),
-        "resilience_score": 1.0,
-        "throughput_norm":  min(final_metrics["Throughput"] / (sum(last_demands) + 1e-9), 1),
-    }
-    disrupted_m = {
-        "fill_rate":        resilience_metrics["fill_during_disruption"],
-        "avg_delay":        final_metrics["Avg Delay"] * 1.5,
-        "cost_per_step":    final_metrics["Total Cost"] / max(len(last_demands), 1) * 1.2,
-        "resilience_score": resilience_metrics["resilience_score"],
-        "throughput_norm":  resilience_metrics["fill_during_disruption"],
-    }
-    plot_resilience_radar(normal_m, disrupted_m)
-
     export_dashboard_data(
-        episode_rewards     = episode_rewards,
-        episode_fill_rates  = episode_fill_rates,
-        episode_avg_delays  = episode_avg_delays,
-        demand_history      = last_demands,
-        satisfied_history   = last_satisfied,
-        inventory_history   = last_inventory,
-        production_costs    = last_prod_costs,
-        holding_costs       = last_hold_costs,
-        delay_costs         = last_delay_costs,
-        disruption_log      = engine.disruption_log,
-        final_metrics       = final_metrics,
-        resilience_metrics  = resilience_metrics,
-        scenario_comparison = scenario_comparison,
-        sla                 = {"fill_rate": SLA_FILL_RATE, "avg_delay": SLA_AVG_DELAY},
+        episode_rewards=episode_rewards,
+        episode_fill_rates=episode_fill_rates,
+        episode_avg_delays=episode_avg_delays,
+        demand_history=last_demands,
+        satisfied_history=last_satisfied,
+        inventory_history=last_inventory,
+        production_costs=last_prod_costs,
+        holding_costs=last_hold_costs,
+        delay_costs=last_delay_costs,
+        disruption_log=engine.disruption_log,
+        final_metrics=final_metrics,
+        resilience_metrics=resilience_metrics,
+        scenario_comparison=scenario_comparison,
+        sla={"fill_rate": SLA_FILL_RATE, "avg_delay": SLA_AVG_DELAY},
     )
+    # Export logs
+    logger.export("outputs/interaction_logs.json")
+    print("Logs exported to outputs/interaction_logs.json")
+    
     return rl_agent

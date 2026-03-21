@@ -209,3 +209,22 @@ __marimo__/
 data/raw/*.csv
 data/processed/*.csv
 venv/
+
+# Project-specific ignores (IMPORTANT)
+
+# Outputs (plots, dashboard, logs)
+outputs/
+
+# Logs (extra safety)
+*.log
+*.json
+
+# Mac junk
+.DS_Store
+
+# VS Code settings (optional but clean)
+.vscode/
+
+# Data files (if large / not needed in repo)
+data/raw/*.csv
+data/processed/*.csv
