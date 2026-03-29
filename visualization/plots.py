@@ -1,3 +1,18 @@
+"""
+Visualization plots for the supply chain ML-MAS.
+
+CHANGES FROM ORIGINAL:
+    - All plot functions now accept pre-downsampled arrays. The simulation_runner
+      downsampless to PLOT_MAX_POINTS=2000 before calling these functions, so
+      182K-point arrays no longer reach matplotlib and plots render quickly.
+    - plot_cost_breakdown: removed the now-redundant 'sample' parameter (caller
+      handles downsampling). Kept signature compatible by leaving sample=None
+      as an ignored kwarg for backward compatibility.
+    - plot_inventory_levels / plot_disruption_timeline: both already cap
+      disruption markers via _cap_log. Now also work correctly with the
+      episode-scoped disruption log passed from the runner.
+"""
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -13,8 +28,8 @@ DISRUPTION_COLORS = {
     "factory_slowdown":    "#534AB7",
 }
 
-# Hard cap: never render more than this many disruption markers in any plot.
-# Prevents matplotlib freeze when disruption_rate is unexpectedly high.
+# Hard cap on disruption markers per plot — prevents matplotlib freeze
+# when the disruption_log is unexpectedly large.
 MAX_DISRUPTION_MARKERS = 80
 
 
@@ -34,9 +49,7 @@ def _cap_log(disruption_log: list) -> list:
     return disruption_log[::step][:MAX_DISRUPTION_MARKERS]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Existing plots (unchanged)
-# ──────────────────────────────────────────────────────────────────────────────
+# ── Plot functions ────────────────────────────────────────────────────────────
 
 def plot_learning_curve(rewards):
     plt.figure(figsize=(8, 4))
@@ -49,19 +62,20 @@ def plot_learning_curve(rewards):
 
 
 def plot_demand_vs_supply(demand, satisfied):
+    """Caller should pre-downsample demand/satisfied to ~2000 points."""
     plt.figure(figsize=(10, 4))
     plt.plot(demand,    label="Demand",    color="#378ADD", linewidth=0.8, alpha=0.8)
     plt.plot(satisfied, label="Satisfied", color="#1D9E75", linewidth=0.8, alpha=0.8)
     plt.legend()
-    plt.title("Demand vs Supply (last episode)")
+    plt.title("Demand vs Supply (last episode, downsampled)")
+    plt.xlabel("Step (downsampled)")
+    plt.ylabel("Units")
+    plt.grid(alpha=0.2)
     _savefig("demand_vs_supply")
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# New Phase 2 plots
-# ──────────────────────────────────────────────────────────────────────────────
-
 def plot_inventory_levels(inventory_history: list, disruption_log: list = None):
+    """Caller should pre-downsample inventory_history to ~2000 points."""
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(inventory_history, color="#534AB7", linewidth=1.0, label="Inventory")
     ax.axhline(20, color="#BA7517", linewidth=0.8, linestyle="--",
@@ -70,15 +84,20 @@ def plot_inventory_levels(inventory_history: list, disruption_log: list = None):
     capped = _cap_log(disruption_log)
     if capped:
         added_labels = set()
+        n = len(inventory_history)
+        # Scale disruption step indices if data was downsampled
+        total_steps = max(step_d["step"] for step_d in capped) + 1 if capped else n
+        scale = n / max(total_steps, 1)
         for event in capped:
             color = DISRUPTION_COLORS.get(event["type"], "#888780")
             label = event["description"] if event["type"] not in added_labels else None
-            ax.axvline(event["step"], color=color, linewidth=1.2,
+            scaled_step = int(event["step"] * scale)
+            ax.axvline(scaled_step, color=color, linewidth=1.2,
                        linestyle=":", alpha=0.8, label=label)
             added_labels.add(event["type"])
 
-    ax.set_title("Inventory levels over time")
-    ax.set_xlabel("Step")
+    ax.set_title("Inventory levels over time (downsampled)")
+    ax.set_xlabel("Step (downsampled)")
     ax.set_ylabel("Units")
     ax.legend(fontsize=8, loc="upper right")
     ax.grid(alpha=0.2)
@@ -91,6 +110,10 @@ def plot_disruption_timeline(
     demands:             list,
     satisfied:           list,
 ):
+    """
+    Caller should pre-downsample fill_rates_per_step, demands, satisfied to ~2000 points.
+    disruption_log should be the episode-scoped log (not the full cross-episode log).
+    """
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 7), sharex=True)
 
     n     = len(demands)
@@ -99,30 +122,35 @@ def plot_disruption_timeline(
     ax1.plot(steps, demands,   color="#378ADD", linewidth=0.7, alpha=0.9, label="Demand")
     ax1.plot(steps, satisfied, color="#1D9E75", linewidth=0.7, alpha=0.9, label="Satisfied")
     ax1.set_ylabel("Units")
-    ax1.set_title("Demand vs Supply with disruption windows")
+    ax1.set_title("Demand vs Supply with disruption windows (downsampled)")
     ax1.legend(fontsize=8)
     ax1.grid(alpha=0.15)
 
     ax2.plot(steps, fill_rates_per_step, color="#534AB7", linewidth=0.8, label="Fill rate")
-    mean_fr = np.mean(fill_rates_per_step)
-    ax2.axhline(mean_fr, color="#888780", linewidth=0.8, linestyle="--",
-                alpha=0.7, label=f"Mean {mean_fr:.3f}")
+    if fill_rates_per_step:
+        mean_fr = np.mean(fill_rates_per_step)
+        ax2.axhline(mean_fr, color="#888780", linewidth=0.8, linestyle="--",
+                    alpha=0.7, label=f"Mean {mean_fr:.3f}")
     ax2.axhline(0.90, color="#1D9E75", linewidth=0.8, linestyle="--",
                 alpha=0.7, label="Target 0.90")
     ax2.set_ylabel("Fill rate")
-    ax2.set_xlabel("Step")
+    ax2.set_xlabel("Step (downsampled)")
     ax2.legend(fontsize=8)
     ax2.grid(alpha=0.15)
     ax2.set_ylim(0, 1.05)
 
-    # Cap spans to avoid freeze
+    # Scale disruption window coordinates to match downsampled array length
     capped = _cap_log(disruption_log)
-    for event in capped:
-        color = DISRUPTION_COLORS.get(event["type"], "#888780")
-        for ax in (ax1, ax2):
-            ax.axvspan(event["step"],
-                       min(event["step"] + event["duration"], n),
-                       color=color, alpha=0.10)
+    if capped:
+        total_steps = max(e["step"] + e["duration"] for e in capped)
+        scale = n / max(total_steps, 1)
+        for event in capped:
+            color = DISRUPTION_COLORS.get(event["type"], "#888780")
+            start = int(event["step"] * scale)
+            end   = int(min(event["step"] + event["duration"], total_steps) * scale)
+            end   = min(end, n)
+            for ax in (ax1, ax2):
+                ax.axvspan(start, end, color=color, alpha=0.10)
 
     patches = [
         mpatches.Patch(color=c, alpha=0.4, label=t.replace("_", " ").title())
@@ -139,23 +167,21 @@ def plot_cost_breakdown(
     production_costs: list,
     holding_costs:    list,
     delay_costs:      list,
-    sample: int = 500,
+    sample: int = None,  # kept for backward compatibility, ignored — caller downsamples
 ):
-    n     = min(sample, len(production_costs))
+    """Caller should pre-downsample all cost arrays to ~2000 points."""
+    n     = len(production_costs)
     steps = range(n)
-    p = production_costs[-n:]
-    h = holding_costs[-n:]
-    d = delay_costs[-n:]
 
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.stackplot(
-        steps, p, h, d,
+        steps, production_costs, holding_costs, delay_costs,
         labels=["Production", "Holding", "Delay penalty"],
         colors=["#378ADD", "#1D9E75", "#E24B4A"],
         alpha=0.75,
     )
-    ax.set_title("Cost breakdown per step (last episode)")
-    ax.set_xlabel("Step")
+    ax.set_title("Cost breakdown per step (last episode, downsampled)")
+    ax.set_xlabel("Step (downsampled)")
     ax.set_ylabel("Cost")
     ax.legend(loc="upper right", fontsize=9)
     ax.grid(alpha=0.2)
@@ -212,8 +238,8 @@ def plot_resilience_radar(
 
     N      = len(labels)
     angles = [n / N * 2 * np.pi for n in range(N)]
-    angles       += angles[:1]
-    vals_normal   += vals_normal[:1]
+    angles         += angles[:1]
+    vals_normal    += vals_normal[:1]
     vals_disrupted += vals_disrupted[:1]
 
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"polar": True})
@@ -232,4 +258,4 @@ def plot_resilience_radar(
     ax.set_title("Resilience radar — normal vs disrupted", pad=20)
 
     plt.tight_layout()
-    _savefig("resilience_radar")
+    _savefig("resilience_radar") 

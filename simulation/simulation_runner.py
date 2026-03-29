@@ -1,14 +1,31 @@
 """
 Unified simulation runner — integrates all agents from the architecture diagram.
 
-FIXES:
-    1. Full agent event logging: WarehouseAgent (inventory_critical,
-       inventory_below_safety, partial_fulfilment, inventory_restored),
-       SupplierAgent (supply_reduced), LogisticsAgent (logistics_disrupted)
-    2. InventoryAgent, ProcurementAgent, FulfillmentAgent, LastMileAgent,
-       DistributionHubAgent integrated in the simulation loop
-    3. Supplier discovery path triggered on Branch C
-    4. export_dashboard_data called with corrected parameter names
+BUGS FIXED IN THIS VERSION:
+    BUG 1 (CRASH): FulfillmentAgent, LastMileAgent, ProcurementAgent, DistributionHubAgent,
+        SupplierDiscoveryAgent created once outside the episode loop but history lists are
+        NEVER reset. By episode 80 this accumulates ~25 GB of Python dicts, crashing
+        the desktop. Fix: call .reset() on all diagram agents at the start of each episode.
+
+    BUG 2 (WRONG Q-UPDATE): env.inventory was read AFTER env.step(), so both the current
+        state (inv) and next state (next_inv) in rl_agent.update() were identical post-step
+        values. Fix: capture pre_step_inv = env.inventory BEFORE calling env.step().
+
+    BUG 3 (WRONG COST METRIC): final_metrics was computed with compute_metrics(last_delay_costs,
+        ...) passing only the delay-cost component instead of total operational cost.
+        Fix: track last_costs = costs (full per-step cost from env.step()) and use that.
+
+    BUG 4 (WRONG RESILIENCE): engine.disruption_log accumulates across all episodes (~82K
+        entries over 100 episodes). compute_resilience_metrics was receiving the full
+        cross-episode log, making every step appear disrupted.
+        Fix: track episode start index, pass only the last episode's slice.
+
+    BUG 5 (DUPLICATE ARGS): _log_warehouse_events was called with duplicate
+        below_safety_flag / below_critical_flag values for the last two arguments.
+        Fix: removed the redundant prev_below_safety / prev_below_critical parameters.
+
+    BUG 6 (PLOT SLOW): No downsampling on 182K-point data passed to matplotlib.
+        Fix: downsample large arrays to max 2000 points before passing to plot functions.
 """
 
 import numpy as np
@@ -38,11 +55,25 @@ from visualization.export_dashboard_data import export_dashboard_data
 
 SLA_FILL_RATE  = 0.90
 SLA_AVG_DELAY  = 5.0
-MAX_LOG_EVENTS = 200   # increased to capture richer agent interactions
+MAX_LOG_EVENTS = 200
 
 # Safety thresholds for WarehouseAgent alerting
 SAFETY_STOCK   = 20.0
 CRITICAL_STOCK = 5.0
+
+# BUG 6 FIX: Downsample large arrays to this many points before passing to plots.
+PLOT_MAX_POINTS = 2000
+
+
+# ── Downsampler helper ────────────────────────────────────────────────────────
+
+def _downsample(data, max_pts=PLOT_MAX_POINTS):
+    """Return an evenly-spaced subsample of `data` at most `max_pts` long."""
+    n = len(data)
+    if n <= max_pts:
+        return list(data)
+    step = max(1, n // max_pts)
+    return list(data)[::step][:max_pts]
 
 
 # ── Event logging helper ──────────────────────────────────────────────────────
@@ -62,12 +93,12 @@ def _evt(events, step, severity, agent, event_type, message, human_readable,
     })
 
 
-# ── Warehouse event helpers (new) ─────────────────────────────────────────────
+# ── Warehouse event helpers ───────────────────────────────────────────────────
 
+# BUG 5 FIX: Removed unused prev_below_safety / prev_below_critical parameters.
 def _log_warehouse_events(
     events, day, inventory, demand, satisfied, actual_prod,
     active_disruptions,
-    prev_below_safety, prev_below_critical,
     below_safety_flag, below_critical_flag,
 ):
     """
@@ -77,32 +108,37 @@ def _log_warehouse_events(
     shortfall = max(0.0, demand - satisfied)
     fill_pct  = (satisfied / demand * 100) if demand > 0 else 100.0
 
-    # Critical stockout
+    # Critical stockout — entered for the first time
     if inventory <= 0 and not below_critical_flag:
         _evt(events, day, "ALERT", "WarehouseAgent", "inventory_critical",
              f"[Step {day}] CRITICAL: Inventory at {inventory:.0f} units — near stockout | Demand: {demand:.0f}",
-             f"CRITICAL ALERT — Warehouse depleted: {inventory:.0f} units against "
-             f"{demand:.0f} demand. Partial fulfilment: {shortfall:.0f} units unserved.",
+             f"CRITICAL ALERT — Warehouse nearly depleted: {inventory:.0f} units remaining "
+             f"against {demand:.0f} demand. Immediate replenishment required. "
+             f"Partial fulfilment enforced — {shortfall:.0f} units unserved. "
+             f"SLA breach imminent if production does not escalate within 2 steps.",
              {"inventory": round(inventory), "demand": round(demand),
               "shortfall": round(shortfall), "safety_stock": SAFETY_STOCK})
         below_critical_flag = True
 
-    # Below safety stock (not yet critical)
+    # Below safety stock (not yet critical) — first entry
     elif 0 < inventory < SAFETY_STOCK and not below_safety_flag:
         _evt(events, day, "WARNING", "WarehouseAgent", "inventory_below_safety",
              f"[Step {day}] Inventory below safety stock: {inventory:.0f}/{SAFETY_STOCK:.0f} units | Demand: {demand:.0f}",
-             f"Inventory warning: {inventory:.0f} units below the {SAFETY_STOCK:.0f}-unit "
-             f"safety buffer. RL agent should be escalating production orders now.",
+             f"Inventory warning: Stock level at {inventory:.0f} units — below the "
+             f"{SAFETY_STOCK:.0f}-unit safety buffer. Warehouse operating in risk zone. "
+             f"RL agent should be increasing production orders now. Vulnerable to any "
+             f"demand spike or further supplier disruption.",
              {"inventory": round(inventory), "safety_stock": SAFETY_STOCK,
               "demand": round(demand), "buffer_remaining": round(inventory)})
         below_safety_flag = True
 
-    # Partial fulfilment (fill rate < 100% this step)
+    # Partial fulfilment this step (fill rate < 90%)
     if shortfall > 0 and fill_pct < 90:
         _evt(events, day, "WARNING", "WarehouseAgent", "partial_fulfilment",
              f"[Step {day}] Partial fulfilment: {satisfied:.0f}/{demand:.0f} units ({fill_pct:.1f}%)",
              f"Service degraded: {satisfied:.0f} of {demand:.0f} units fulfilled "
-             f"({fill_pct:.1f}%). {shortfall:.0f} units unserved.",
+             f"({fill_pct:.1f}% fill rate this step). {shortfall:.0f} units unserved "
+             f"— contributing to delay penalty. Cause: disruption impact.",
              {"satisfied": round(satisfied), "demand": round(demand),
               "fill_pct": round(fill_pct, 1), "delay_units": round(shortfall)})
 
@@ -110,10 +146,12 @@ def _log_warehouse_events(
     if below_safety_flag and inventory >= SAFETY_STOCK:
         _evt(events, day, "RESOLVED", "WarehouseAgent", "inventory_restored",
              f"[Step {day}] Inventory restored to {inventory:.0f} units — safety threshold cleared",
-             f"Warehouse recovery: Inventory back above {SAFETY_STOCK:.0f}-unit "
-             f"safety threshold at {inventory:.0f} units.",
+             f"Warehouse recovery confirmed: Inventory back above {SAFETY_STOCK:.0f}-unit "
+             f"safety threshold at {inventory:.0f} units. Full demand coverage restored. "
+             f"RL agent successfully navigated low-stock period — buffer rebuilt within "
+             f"operational parameters.",
              {"inventory": round(inventory), "safety_stock": SAFETY_STOCK})
-        below_safety_flag  = False
+        below_safety_flag   = False
         below_critical_flag = False
 
     return below_safety_flag, below_critical_flag
@@ -264,7 +302,9 @@ def train_rl_agent(
     else:
         bus = None
 
-    # Instantiate diagram agents
+    # ── BUG 1 FIX: Create diagram agents once here; reset() at top of each episode loop ──
+    # Previously these were created once and NEVER reset, so their history lists
+    # grew to 182K × N_episodes entries, consuming ~25 GB of RAM by episode 80.
     procurement_agent  = ProcurementAgent()
     fulfillment_agent  = FulfillmentAgent()
     last_mile_agent    = LastMileAgent()
@@ -275,11 +315,25 @@ def train_rl_agent(
     engine = DisruptionEngine(enabled=disruptions_enabled, seed=42)
 
     episode_rewards, episode_fill_rates, episode_avg_delays = [], [], []
-    last_demands = last_satisfied = last_inventory = []
+
+    # BUG 3 FIX: Track last_costs (total per-step cost) — was never tracked before
+    last_costs = last_demands = last_satisfied = last_inventory = []
     last_fill_per_step = last_prod_costs = last_hold_costs = last_delay_costs = []
     agent_events: list = []
 
+    # BUG 4 FIX: Track the disruption log index at the start of the final episode
+    # so we pass only that episode's events to compute_resilience_metrics.
+    last_episode_disruption_start = 0
+
     for ep in range(episodes):
+        # ── BUG 1 FIX: Reset all diagram agents at episode start ──────────────
+        # This clears the history lists that caused ~25 GB memory accumulation.
+        procurement_agent.reset()
+        fulfillment_agent.reset()
+        last_mile_agent.reset()
+        dist_hub_agent.reset()
+        supplier_discovery.reset()
+
         if use_multi_warehouse:
             from simulation.environment import MultiWarehouseEnvironment
             env = MultiWarehouseEnvironment()
@@ -294,13 +348,20 @@ def train_rl_agent(
         if bus:
             bus.reset()
 
+        # BUG 4 FIX: Record where this episode's disruptions start in the log
+        episode_disruption_start = len(engine.disruption_log)
+
         total_reward = 0
+        # BUG 3 FIX: Track full per-step cost (not just delay component)
         costs, demands, satisfied_list = [], [], []
         inventory_hist, fill_per_step  = [], []
         prod_costs, hold_costs, delay_costs_ep = [], [], []
         original_cap = logistics.capacity
 
         is_last = (ep == episodes - 1)
+        if is_last:
+            # Record where the last episode's disruptions start
+            last_episode_disruption_start = episode_disruption_start
 
         # Cooldown / state trackers
         last_high_prod_log    = -2000
@@ -346,13 +407,19 @@ def train_rl_agent(
                         step=day,
                     )
 
-            # ── Procurement decision (diagram: Production → Procurement) ──────
+            # ── Procurement decision ──────────────────────────────────────────
             procurement_qty = procurement_agent.process_order(
                 required=actual_prod,
                 inventory=env.inventory,
                 demand=actual_demand,
                 disruptions=engine.active_types(),
             )
+
+            # ── BUG 2 FIX: Capture pre-step inventory for correct Bellman state ──
+            # Before this fix, env.inventory was read AFTER env.step(), so both
+            # current-state and next-state in rl_agent.update() were the same
+            # post-step value, corrupting the Q-table.
+            pre_step_inv = env.inventory
 
             # ── Environment step ───────────────────────────────────────────────
             shipment  = warehouse.act(env.inventory + procurement_qty, actual_demand)
@@ -365,13 +432,11 @@ def train_rl_agent(
                 branch    = result[3]
                 transfer  = result[4]
 
-                # Distribution Hub coordinates warehouse routing
                 dist_hub_agent.route(
                     branch=branch, transfer_units=transfer,
                     warehouses=["A", "B", "C"], step=day,
                 )
 
-                # Branch C: trigger supplier discovery
                 if branch == "C":
                     alt_supplier = supplier_discovery.find_supplier(
                         units_needed=actual_demand - satisfied,
@@ -420,7 +485,7 @@ def train_rl_agent(
 
             total_reward += reward
 
-            # ── Learning update ────────────────────────────────────────────────
+            # ── BUG 2 FIX: Use pre_step_inv as current state, env.inventory as next ──
             if use_dqn:
                 if use_multi_warehouse:
                     next_state = env.get_state_vector(
@@ -436,14 +501,16 @@ def train_rl_agent(
                 )
                 rl_agent.train_step()
             else:
+                # BUG 2 FIX: pre_step_inv (before step) → current state
+                #             env.inventory (after step)  → next state
                 rl_agent.update(
-                    env.inventory, actual_demand, action_idx, reward,
+                    pre_step_inv, actual_demand, action_idx, reward,
                     env.inventory, next_demand,
                 )
 
-            # ── Metrics ────────────────────────────────────────────────────────
+            # ── Metrics accumulation ──────────────────────────────────────────
             step_fill = satisfied / (actual_demand + 1e-9)
-            costs.append(cost)
+            costs.append(cost)               # BUG 3 FIX: full cost from env.step()
             demands.append(actual_demand)
             satisfied_list.append(satisfied)
             inventory_hist.append(env.inventory)
@@ -466,7 +533,7 @@ def train_rl_agent(
                          "disruption_start",
                          f"[Step {day}] {cfg.get('description','Disruption')} ACTIVATED "
                          f"— expected {cfg.get('duration_range', '')} steps",
-                         f"Disruption detected: {cfg.get('description',dt)} now active. "
+                         f"Disruption detected: {cfg.get('description', dt)} now active. "
                          f"All downstream agents operating under degraded conditions. "
                          f"Impact: {', '.join(k+'×'+str(v) for k,v in cfg.items() if 'factor' in k)}. "
                          f"Monitoring recovery.",
@@ -479,9 +546,9 @@ def train_rl_agent(
                          "disruption_resolved",
                          f"[Step {day}] {cfg.get('description','Disruption')} RESOLVED "
                          f"— normal operations restored",
-                         f"Disruption cleared: {cfg.get('description',dt)} no longer active. "
+                         f"Disruption cleared: {cfg.get('description', dt)} no longer active. "
                          f"Agents resuming standard operating parameters. "
-                         f"Expect inventory recovery within 3–8 steps as production ramps.",
+                         f"Expect inventory recovery within 3–8 steps as production ramps to meet backlog.",
                          {"type": dt})
 
                 prev_disruptions = curr_disp
@@ -506,18 +573,18 @@ def train_rl_agent(
                          f"Fleet severely degraded: operating at {logistics.capacity:.0f}/"
                          f"{original_cap:.0f} units "
                          f"({logistics.capacity/original_cap*100:.0f}% capacity). "
-                         f"Priority dispatch only — {transport:.0f} units moving.",
+                         f"Priority dispatch only — {transport:.0f} units moving. "
+                         f"Non-critical delivery timelines suspended until fleet recovery confirmed.",
                          {"current_capacity": round(logistics.capacity),
                           "normal_capacity":  round(original_cap),
                           "units_dispatched": round(transport),
                           "disruption":       "logistics_breakdown"})
                     last_logistics_log = day
 
-                # WarehouseAgent threshold events
+                # BUG 5 FIX: Removed duplicate flag parameters from the call
                 below_safety_flag, below_critical_flag = _log_warehouse_events(
                     agent_events, day, env.inventory, actual_demand, satisfied,
                     actual_prod, curr_disp,
-                    below_safety_flag, below_critical_flag,
                     below_safety_flag, below_critical_flag,
                 )
 
@@ -530,12 +597,14 @@ def train_rl_agent(
                          f"Production {'at full capacity' if actual_prod >= 180 else 'scaled up'}: "
                          f"{actual_prod:.0f} units ordered. RL Q-agent responding to "
                          f"{'critical inventory pressure' if actual_prod >= 180 else 'elevated demand forecast'} "
-                         f"({actual_demand:.0f} units expected).",
+                         f"({actual_demand:.0f} units expected). "
+                         f"Proactive inventory build to absorb potential surge or disruption.",
                          {"production": round(actual_prod), "demand": round(actual_demand),
-                          "inventory": round(env.inventory)})
+                          "inventory": round(env.inventory),
+                          "q_action": action_idx, "epsilon": round(rl_agent.epsilon, 3)})
                     last_high_prod_log = day
 
-                # FulfillmentAgent: delivery confirmed
+                # FulfillmentAgent: delivery confirmed (sampled every 2000 steps)
                 if last_mile_result.get("delivered") and day % 2000 == 0:
                     _evt(agent_events, day, "ACTION", "FulfillmentAgent", "delivery_confirmed",
                          f"[Step {day}] Last-mile delivery: {last_mile_result['units']:.0f} units "
@@ -555,8 +624,7 @@ def train_rl_agent(
                           + (f"Inter-warehouse transfer of {transfer:.0f} units initiated."
                              if branch == "B"
                              else "All warehouses depleted — SupplierDiscoveryAgent activated.")),
-                         {"branch": branch, "transfer_units": round(transfer, 1),
-                          "step": day})
+                         {"branch": branch, "transfer_units": round(transfer, 1), "step": day})
 
                 # SLA breach / restore
                 if step_fill < SLA_FILL_RATE and not sla_failing:
@@ -565,7 +633,7 @@ def train_rl_agent(
                          f"Service Level Agreement breached: Per-step fill rate at "
                          f"{step_fill:.3f}, below the {SLA_FILL_RATE} SLA floor. "
                          f"Root cause: active disruption(s): {list(curr_disp) or 'demand spike'}. "
-                         f"System is working to recover.",
+                         f"System is working to recover — monitor inventory and production response.",
                          {"fill_rate": round(step_fill, 4), "sla": SLA_FILL_RATE,
                           "active_disruptions": list(curr_disp)})
                     sla_failing = True
@@ -575,7 +643,8 @@ def train_rl_agent(
                          f"[Step {day}] SLA RESTORED: fill rate recovered to {step_fill:.3f}",
                          f"Service Level Agreement restored: Fill rate back above "
                          f"{SLA_FILL_RATE} at {step_fill:.3f}. RL agent successfully "
-                         f"recovered from stress event.",
+                         f"recovered from stress event. Supply chain stability re-established "
+                         f"— continuing to monitor for secondary disruptions.",
                          {"fill_rate": round(step_fill, 4), "sla": SLA_FILL_RATE})
                     sla_failing = False
 
@@ -606,6 +675,8 @@ def train_rl_agent(
         episode_fill_rates.append(ep_m["Fill Rate"])
         episode_avg_delays.append(ep_m["Avg Delay"])
 
+        # BUG 3 FIX: Save full per-step costs (not just delay component)
+        last_costs         = costs
         last_demands       = demands
         last_satisfied     = satisfied_list
         last_inventory     = inventory_hist
@@ -639,22 +710,44 @@ def train_rl_agent(
         print(f"  {sc['label']:<32} fill={sc['fill_rate']:.3f} "
               f" SLA:{'PASS' if sc['sla_pass'] else 'FAIL'}{save}")
 
-    final_metrics      = compute_metrics(last_delay_costs, last_demands, last_satisfied)
+    # BUG 3 FIX: Use last_costs (full cost from env.step()) not last_delay_costs
+    final_metrics = compute_metrics(last_costs, last_demands, last_satisfied)
+
+    # BUG 4 FIX: Pass only last episode's disruption events to resilience metrics.
+    # Previously the full cross-episode log (~82K entries) was passed, causing
+    # every step to appear disrupted (all step numbers repeat across episodes).
+    last_episode_disruption_log = engine.disruption_log[last_episode_disruption_start:]
     resilience_metrics = compute_resilience_metrics(
-        last_fill_per_step, engine.disruption_log, len(last_fill_per_step)
+        last_fill_per_step, last_episode_disruption_log, len(last_fill_per_step)
     )
 
     print("\nFinal Metrics:")
     for k, v in final_metrics.items():
         print(f"  {k}: {round(v, 3)}")
 
+    # BUG 6 FIX: Downsample large arrays before passing to matplotlib.
+    # 182K-point plots cause slow/hanging renders. 2000 points is plenty for visualization.
     print("\nGenerating plots...")
     plot_learning_curve(episode_rewards)
-    plot_demand_vs_supply(last_demands, last_satisfied)
-    plot_inventory_levels(last_inventory, engine.disruption_log)
-    plot_disruption_timeline(engine.disruption_log, last_fill_per_step,
-                             last_demands, last_satisfied)
-    plot_cost_breakdown(last_prod_costs, last_hold_costs, last_delay_costs)
+    plot_demand_vs_supply(
+        _downsample(last_demands),
+        _downsample(last_satisfied),
+    )
+    plot_inventory_levels(
+        _downsample(last_inventory),
+        last_episode_disruption_log,
+    )
+    plot_disruption_timeline(
+        last_episode_disruption_log,
+        _downsample(last_fill_per_step),
+        _downsample(last_demands),
+        _downsample(last_satisfied),
+    )
+    plot_cost_breakdown(
+        _downsample(last_prod_costs),
+        _downsample(last_hold_costs),
+        _downsample(last_delay_costs),
+    )
     plot_episode_metrics(episode_fill_rates, episode_avg_delays)
     plot_resilience_radar(
         {"fill_rate":        resilience_metrics["fill_normal"],

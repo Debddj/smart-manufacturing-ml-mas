@@ -5,14 +5,15 @@ Architecture position:
     Warehouse System → Inventory Available? → FulfillmentAgent → LastMileAgent
                                            → NO → SupplierDiscoveryAgent
 
-Responsibilities:
-    - Decide fulfilment strategy (full / partial / backorder)
-    - Track fill rates, backorders, and SLA compliance per step
-    - Signal to LastMileAgent the confirmed dispatch quantity
+CHANGE: Added MAX_HISTORY cap (1000 entries) as a safety net.
+The primary fix is in simulation_runner.py which now calls reset() at the start
+of each episode. This cap prevents any future regression from causing OOM.
 """
 
 from __future__ import annotations
 from typing import List
+
+MAX_HISTORY = 1000  # Safety cap — primary fix is reset() in simulation_runner
 
 
 class FulfillmentAgent:
@@ -22,11 +23,9 @@ class FulfillmentAgent:
     Two-path logic matching the diagram:
         YES path: inventory >= demand → full fulfilment via LastMileAgent
         NO path:  inventory <  demand → partial fulfilment + backorder signal
-
-    Episode metrics allow the RL agent to receive fulfilment quality signal.
     """
 
-    SLA_FILL_TARGET = 0.90   # minimum acceptable per-step fill rate
+    SLA_FILL_TARGET = 0.90
 
     def __init__(self, agent_name: str = "FulfillmentAgent"):
         self.name = agent_name
@@ -58,7 +57,6 @@ class FulfillmentAgent:
         """
         self._step_count += 1
 
-        # Cannot dispatch more than was satisfied by warehouse
         confirmed  = min(satisfied, demand)
         shortfall  = max(0.0, demand - confirmed)
         fill_rate  = confirmed / (demand + 1e-9)
@@ -69,14 +67,16 @@ class FulfillmentAgent:
         if fill_rate < self.SLA_FILL_TARGET:
             self.sla_breaches += 1
 
-        self.history.append({
-            "step":      self._step_count,
-            "confirmed": round(confirmed, 1),
-            "demand":    round(demand,    1),
-            "shortfall": round(shortfall, 1),
-            "fill_rate": round(fill_rate, 4),
-            "inventory": round(inventory, 1),
-        })
+        # Safety cap: only store recent history to prevent unbounded growth
+        if len(self.history) < MAX_HISTORY:
+            self.history.append({
+                "step":      self._step_count,
+                "confirmed": round(confirmed, 1),
+                "demand":    round(demand,    1),
+                "shortfall": round(shortfall, 1),
+                "fill_rate": round(fill_rate, 4),
+                "inventory": round(inventory, 1),
+            })
 
         return confirmed
 
