@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Supply Chain Shop — Smart Manufacturing MAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+  --amber:#f59e0b;--amber-glow:rgba(245,158,11,.15);--cyan:#06b6d4;
+  --green:#10b981;--red:#ef4444;--text:#e2e8f0;--muted:#64748b;
+  --card-bg:rgba(17,24,39,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(6,182,212,.04) 0%,transparent 60%),
+                   radial-gradient(ellipse at 80% 20%,rgba(245,158,11,.04) 0%,transparent 50%);
+}
+/* ── Header ── */
+header{
+  padding:1rem 2rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(8px);background:rgba(10,14,26,.8);
+  position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:.75rem;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--amber),var(--cyan));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:1.1rem;font-weight:700;color:var(--text);}
+.logo-sub{font-size:.7rem;color:var(--muted);font-weight:400;}
+.header-right{display:flex;align-items:center;gap:1rem;}
+.dash-btn{
+  padding:.5rem 1rem;border:1px solid var(--border);border-radius:8px;
+  background:var(--surface2);color:var(--text);cursor:pointer;
+  font-size:.8rem;font-family:inherit;text-decoration:none;
+  transition:all .2s;display:flex;align-items:center;gap:.4rem;
+}
+.dash-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.cart-badge{
+  padding:.5rem 1rem;background:var(--amber-glow);border:1px solid var(--amber);
+  border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--amber);
+  transition:all .2s;
+}
+.cart-badge:hover{background:rgba(245,158,11,.25);}
+/* ── Layout ── */
+main{display:grid;grid-template-columns:1fr 380px;gap:0;height:calc(100vh - 65px);}
+/* ── Product grid ── */
+.products-panel{
+  padding:2rem;overflow-y:auto;border-right:1px solid var(--border);
+}
+.panel-title{
+  font-size:1rem;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem;
+}
+.panel-title::before{content:'';width:3px;height:16px;background:var(--amber);border-radius:2px;}
+.category-filter{
+  display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;
+}
+.cat-btn{
+  padding:.3rem .8rem;border:1px solid var(--border);border-radius:20px;
+  background:transparent;color:var(--muted);cursor:pointer;font-size:.75rem;
+  font-family:inherit;transition:all .2s;
+}
+.cat-btn:hover,.cat-btn.active{
+  border-color:var(--amber);color:var(--amber);background:var(--amber-glow);
+}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.product-card{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+  padding:1.25rem;transition:all .25s;cursor:pointer;position:relative;overflow:hidden;
+}
+.product-card::before{
+  content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--amber-glow),transparent);
+  opacity:0;transition:opacity .25s;
+}
+.product-card:hover{border-color:var(--amber);transform:translateY(-2px);}
+.product-card:hover::before{opacity:1;}
+.product-cat{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--cyan);font-weight:600;margin-bottom:.5rem;
+}
+.product-name{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.4rem;line-height:1.3;}
+.product-desc{font-size:.75rem;color:var(--muted);margin-bottom:.75rem;line-height:1.4;}
+.product-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;}
+.product-price{font-size:1.1rem;font-weight:700;color:var(--amber);}
+.product-stock{font-size:.7rem;padding:.2rem .5rem;border-radius:10px;}
+.stock-in{color:var(--green);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);}
+.stock-low{color:var(--amber);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);}
+.stock-out{color:var(--red);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);}
+.add-btn{
+  width:100%;padding:.6rem;border:none;border-radius:8px;
+  background:linear-gradient(135deg,var(--amber),#d97706);
+  color:#000;font-weight:700;font-size:.8rem;cursor:pointer;
+  font-family:inherit;transition:all .2s;position:relative;
+}
+.add-btn:hover{transform:scale(1.02);box-shadow:0 4px 15px rgba(245,158,11,.4);}
+.add-btn:active{transform:scale(.98);}
+/* ── Cart panel ── */
+.cart-panel{
+  display:flex;flex-direction:column;padding:2rem;overflow-y:auto;background:var(--surface);
+}
+.cart-empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1rem;color:var(--muted);
+}
+.cart-empty-icon{font-size:3rem;opacity:.3;}
+.cart-items{flex:1;overflow-y:auto;}
+.cart-item{
+  display:flex;align-items:center;gap:.75rem;padding:.75rem 0;
+  border-bottom:1px solid var(--border);
+}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:.8rem;font-weight:600;margin-bottom:.2rem;}
+.cart-item-price{font-size:.75rem;color:var(--muted);}
+.cart-qty{display:flex;align-items:center;gap:.4rem;}
+.qty-btn{
+  width:24px;height:24px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);border-radius:6px;cursor:pointer;font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.qty-btn:hover{border-color:var(--amber);color:var(--amber);}
+.qty-val{font-size:.85rem;font-weight:600;min-width:20px;text-align:center;}
+.remove-btn{
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:.85rem;transition:color .2s;padding:.2rem;
+}
+.remove-btn:hover{color:var(--red);}
+.cart-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:1.25rem;}
+.cart-summary{margin-bottom:1rem;}
+.summary-row{
+  display:flex;justify-content:space-between;font-size:.8rem;
+  color:var(--muted);padding:.2rem 0;
+}
+.summary-total{
+  display:flex;justify-content:space-between;font-size:1rem;
+  font-weight:700;color:var(--text);padding:.5rem 0;
+  border-top:1px solid var(--border);margin-top:.5rem;
+}
+.order-btn{
+  width:100%;padding:1rem;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--amber),#d97706);
+  color:#000;font-weight:700;font-size:.95rem;cursor:pointer;
+  font-family:inherit;transition:all .3s;
+  box-shadow:0 4px 20px rgba(245,158,11,.3);
+}
+.order-btn:hover{box-shadow:0 6px 25px rgba(245,158,11,.5);transform:translateY(-1px);}
+.order-btn:disabled{
+  background:#334155;color:var(--muted);cursor:not-allowed;
+  box-shadow:none;transform:none;
+}
+/* ── Status tracker ── */
+.status-box{
+  margin-top:1rem;padding:1rem;background:var(--card-bg);
+  border:1px solid var(--border);border-radius:10px;display:none;
+}
+.status-box.visible{display:block;animation:slideIn .3s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.status-order-id{font-size:.7rem;color:var(--muted);margin-bottom:.5rem;}
+.status-title{font-size:.85rem;font-weight:600;margin-bottom:.75rem;}
+.timeline{display:flex;flex-direction:column;gap:.4rem;}
+.tl-step{
+  display:flex;align-items:flex-start;gap:.6rem;font-size:.75rem;opacity:.4;
+  transition:all .4s;
+}
+.tl-step.active{opacity:1;}
+.tl-step.done{opacity:.7;}
+.tl-dot{
+  width:18px;height:18px;border-radius:50%;border:2px solid var(--border);
+  flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;transition:all .4s;
+}
+.tl-step.active .tl-dot{border-color:var(--amber);background:var(--amber-glow);animation:pulse 1.2s infinite;}
+.tl-step.done .tl-dot{border-color:var(--green);background:rgba(16,185,129,.15);color:var(--green);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.4)}50%{box-shadow:0 0 0 6px rgba(245,158,11,0)}}
+.tl-text{line-height:1.3;}
+.tl-detail{color:var(--muted);font-size:.7rem;margin-top:.15rem;}
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;padding:.75rem 1.25rem;
+  background:var(--surface2);border:1px solid var(--green);border-radius:10px;
+  color:var(--green);font-size:.85rem;font-weight:600;
+  transform:translateY(100px);opacity:0;transition:all .3s;z-index:999;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏭</div>
+    <div>
+      <div class="logo-text">Supply Chain Shop</div>
+      <div class="logo-sub">Smart Manufacturing MAS Commerce</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="/dashboard" target="_blank" class="dash-btn">📡 MAS Dashboard</a>
+    <div class="cart-badge" onclick="scrollToCart()">🛒 Cart (<span id="cartCount">0</span>)</div>
+  </div>
+</header>
+
+<main>
+  <!-- Products panel -->
+  <div class="products-panel">
+    <div class="panel-title">Product Catalog</div>
+    <div class="category-filter" id="catFilter">
+      <button class="cat-btn active" onclick="filterCat(null,this)">All</button>
+    </div>
+    <div class="product-grid" id="productGrid">
+      <div style="color:var(--muted);font-size:.85rem;grid-column:1/-1">Loading products...</div>
+    </div>
+  </div>
+
+  <!-- Cart panel -->
+  <div class="cart-panel" id="cartPanel">
+    <div class="panel-title">Shopping Cart</div>
+
+    <div class="cart-empty" id="cartEmpty">
+      <div class="cart-empty-icon">🛒</div>
+      <div style="font-size:.85rem;font-weight:600;">Your cart is empty</div>
+      <div style="font-size:.75rem;">Add products to trigger the supply chain</div>
+    </div>
+
+    <div class="cart-items" id="cartItems" style="display:none"></div>
+
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="cart-summary">
+        <div class="summary-row"><span>Items</span><span id="itemCount">0</span></div>
+        <div class="summary-row"><span>Units demand</span><span id="unitDemand">0</span></div>
+        <div class="summary-total"><span>Total</span><span id="cartTotal">$0.00</span></div>
+      </div>
+      <button class="order-btn" id="orderBtn" onclick="placeOrder()">
+        🚀 Place Order & Trigger Supply Chain
+      </button>
+
+      <!-- Order status tracker -->
+      <div class="status-box" id="statusBox">
+        <div class="status-order-id" id="statusOrderId"></div>
+        <div class="status-title">📦 Order Journey</div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let cart = {};         // {sku: qty}
+let products = {};     // {sku: product}
+let currentOrderId = null;
+let evtSource = null;
+
+const STAGES = [
+  { id:'received',          icon:'📥', label:'Order Received' },
+  { id:'inventory_check',   icon:'🔍', label:'Inventory Check' },
+  { id:'fulfillment',       icon:'📦', label:'Fulfillment' },
+  { id:'warehouse_transfer',icon:'🔄', label:'Warehouse Transfer' },
+  { id:'procurement',       icon:'🛒', label:'Procurement' },
+  { id:'restock',           icon:'📨', label:'Supplier Restock' },
+  { id:'logistics',         icon:'🚚', label:'Logistics' },
+  { id:'last_mile',         icon:'🏠', label:'Last Mile' },
+  { id:'delivered',         icon:'✅', label:'Delivered' },
+];
+
+// ── Load products ──────────────────────────────────────────────────────────────
+async function loadProducts() {
+  const r = await fetch(API + '/api/products');
+  const data = await r.json();
+  products = {};
+  const cats = new Set();
+  data.forEach(p => {
+    products[p.id] = p;
+    cats.add(p.category);
+  });
+  renderCategories([...cats]);
+  renderProducts(data);
+}
+
+function renderCategories(cats) {
+  const cf = document.getElementById('catFilter');
+  cats.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat-btn';
+    b.textContent = c;
+    b.onclick = () => filterCat(c, b);
+    cf.appendChild(b);
+  });
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const ps = Object.values(products);
+  renderProducts(cat ? ps.filter(p => p.category === cat) : ps);
+}
+
+function renderProducts(prods) {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '';
+  prods.forEach(p => {
+    const inv  = p.inventory?.available || 0;
+    const status = inv > p.agent_context?.base_daily_demand * 3 ? 'in_stock'
+                 : inv > 0 ? 'low_stock' : 'out_of_stock';
+    const stockLabel = status === 'in_stock' ? 'In Stock'
+                     : status === 'low_stock' ? 'Low Stock' : 'Out of Stock';
+    const stockCls = status === 'in_stock' ? 'stock-in'
+                   : status === 'low_stock' ? 'stock-low' : 'stock-out';
+    const inCart = cart[p.id] || 0;
+
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <div class="product-cat">${p.category}</div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-desc">${p.description||'Industrial grade component'}</div>
+      <div class="product-meta">
+        <div class="product-price">$${p.price?.amount?.toFixed(2)||'0.00'}</div>
+        <div class="product-stock ${stockCls}">${stockLabel}</div>
+      </div>
+      <button class="add-btn" onclick="addToCart('${p.id}')">
+        ${inCart>0 ? `✓ In Cart (${inCart})` : '+ Add to Cart'}
+      </button>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── Cart logic ─────────────────────────────────────────────────────────────────
+function addToCart(sku) {
+  cart[sku] = (cart[sku] || 0) + 1;
+  updateCart();
+  showToast(`Added ${products[sku]?.name || sku} to cart`);
+  // Re-render so button updates
+  const prods = Object.values(products);
+  const activeCat = document.querySelector('.cat-btn.active').textContent;
+  renderProducts(activeCat === 'All' ? prods : prods.filter(p=>p.category===activeCat));
+}
+
+function changeQty(sku, delta) {
+  cart[sku] = (cart[sku] || 0) + delta;
+  if (cart[sku] <= 0) delete cart[sku];
+  updateCart();
+}
+
+function removeItem(sku) {
+  delete cart[sku];
+  updateCart();
+}
+
+function updateCart() {
+  const skus = Object.keys(cart);
+  document.getElementById('cartCount').textContent = skus.length;
+
+  const empty  = document.getElementById('cartEmpty');
+  const items  = document.getElementById('cartItems');
+  const footer = document.getElementById('cartFooter');
+
+  if (skus.length === 0) {
+    empty.style.display  = 'flex';
+    items.style.display  = 'none';
+    footer.style.display = 'none';
+    return;
+  }
+  empty.style.display  = 'none';
+  items.style.display  = 'block';
+  footer.style.display = 'block';
+
+  let total = 0, units = 0;
+  items.innerHTML = '';
+  skus.forEach(sku => {
+    const p   = products[sku];
+    const qty = cart[sku];
+    const price = p?.price?.amount || 0;
+    total += price * qty;
+    units += qty;
+
+    const row = document.createElement('div');
+    row.className = 'cart-item';
+    row.innerHTML = `
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p?.name || sku}</div>
+        <div class="cart-item-price">$${(price * qty).toFixed(2)}</div>
+      </div>
+      <div class="cart-qty">
+        <button class="qty-btn" onclick="changeQty('${sku}',-1)">−</button>
+        <div class="qty-val">${qty}</div>
+        <button class="qty-btn" onclick="changeQty('${sku}',1)">+</button>
+      </div>
+      <button class="remove-btn" onclick="removeItem('${sku}')">✕</button>`;
+    items.appendChild(row);
+  });
+
+  document.getElementById('itemCount').textContent  = skus.length;
+  document.getElementById('unitDemand').textContent = units;
+  document.getElementById('cartTotal').textContent  = '$' + total.toFixed(2);
+}
+
+// ── Place order ────────────────────────────────────────────────────────────────
+async function placeOrder() {
+  if (Object.keys(cart).length === 0) return;
+
+  const btn = document.getElementById('orderBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Processing...';
+
+  const items = Object.entries(cart).map(([sku, qty]) => ({sku, qty}));
+  const r = await fetch(API + '/api/order', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({items}),
+  });
+  const data = await r.json();
+  currentOrderId = data.order_id;
+
+  // Show status box
+  const box = document.getElementById('statusBox');
+  box.classList.add('visible');
+  document.getElementById('statusOrderId').textContent = `Order: ${currentOrderId}`;
+  buildTimeline();
+
+  // Open MAS dashboard in new tab
+  window.open('/dashboard?order=' + currentOrderId, '_blank');
+
+  // Start SSE
+  if (evtSource) evtSource.close();
+  evtSource = new EventSource(API + '/api/stream/' + currentOrderId);
+  evtSource.onmessage = e => handleEvent(JSON.parse(e.data));
+
+  btn.textContent = '⏳ Agents Working...';
+}
+
+function buildTimeline() {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = '';
+  STAGES.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'tl-step';
+    row.id = 'tl-' + s.id;
+    row.innerHTML = `
+      <div class="tl-dot" id="dot-${s.id}"></div>
+      <div class="tl-text">
+        <div>${s.icon} ${s.label}</div>
+        <div class="tl-detail" id="detail-${s.id}"></div>
+      </div>`;
+    tl.appendChild(row);
+  });
+}
+
+function handleEvent(ev) {
+  if (ev.type === 'order_status') {
+    const stage = ev.stage;
+    // Mark all stages before this as done
+    let found = false;
+    STAGES.forEach(s => {
+      const el  = document.getElementById('tl-' + s.id);
+      const dot = document.getElementById('dot-' + s.id);
+      if (!el) return;
+      if (s.id === stage) {
+        el.classList.remove('done');
+        el.classList.add('active');
+        dot.textContent = '';
+        document.getElementById('detail-'+s.id).textContent = ev.detail || '';
+        found = true;
+      } else if (!found) {
+        el.classList.remove('active');
+        el.classList.add('done');
+        dot.textContent = '✓';
+      }
+    });
+
+    if (ev.status === 'DELIVERED') {
+      // Mark all done
+      STAGES.forEach(s => {
+        const el  = document.getElementById('tl-' + s.id);
+        const dot = document.getElementById('dot-' + s.id);
+        if (!el) return;
+        el.classList.remove('active');
+        el.classList.add('done');
+        dot.textContent = '✓';
+      });
+      document.getElementById('orderBtn').textContent = '✅ Order Delivered!';
+      document.getElementById('orderBtn').disabled = false;
+      cart = {};
+      updateCart();
+      showToast('Order delivered! 🎉 Supply chain completed.');
+      if (evtSource) evtSource.close();
+    }
+  }
+}
+
+function scrollToCart() {
+  document.getElementById('cartPanel').scrollIntoView({behavior:'smooth'});
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+loadProducts();
+setInterval(loadProducts, 30000);   // refresh inventory every 30s
+</script>
+</body>
+</html>
