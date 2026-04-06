@@ -586,7 +586,19 @@ async def serve_shop():
     return p.read_text(encoding="utf-8")
 
 
+@app.get("/shop", response_class=HTMLResponse)
+async def serve_shop_alias():
+    p = BASE_DIR / "frontend" / "shop.html"
+    return p.read_text(encoding="utf-8")
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def serve_dashboard():
-    p = BASE_DIR / "frontend" / "dashboard.html"
+    p = BASE_DIR / "frontend" / "mas-ops.html"
+    return p.read_text(encoding="utf-8")
+
+
+@app.get("/mas-ops", response_class=HTMLResponse)
+async def serve_mas_ops():
+    p = BASE_DIR / "frontend" / "mas-ops.html"
     return p.read_text(encoding="utf-8")
