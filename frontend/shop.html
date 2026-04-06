@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Supply Chain Shop — Smart Manufacturing MAS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg:#EDE8DF;--surface:#F5F1EB;--surface2:#FAFAF8;--border:#D8D2C8;
-  --ink:#1C1C1C;--ink2:#3A3A3A;--muted:#8A8478;--muted2:#B0A99F;
-  --gold:#7A4A1E;--gold-glow:rgba(122,74,30,.1);--gold2:#5A3412;
-  --sage:#2D5A3D;--sage-dim:rgba(45,90,61,.1);
-  --slate:#1E3A5F;--red:#6B1E1E;--red-dim:rgba(107,30,30,.1);
-  --cream:#1C1C1C;--card:#FFFFFF;--mono:'DM Mono',monospace;
+  --bg:#FFF3E6;--surface:#FFF8F0;--surface2:#FFFBF7;--border:#E8D5C4;
+  --ink:#381932;--ink2:#4A2A3E;--muted:#6B4A5E;--muted2:#8B6A7E;
+  --gold:#C4915F;--gold-glow:rgba(196,145,95,.15);--gold2:#A67A4A;
+  --sage:#6B8E7F;--sage-dim:rgba(107,142,127,.15);
+  --slate:#6B7A8E;--red:#B85C5C;--red-dim:rgba(184,92,92,.15);
+  --cream:#FFF3E6;--card:#FFFFFF;--mono:'Inter',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
 header{padding:.9rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);position:sticky;top:0;z-index:100;}
 .logo{display:flex;align-items:center;gap:.75rem;}
 .logo-icon{width:34px;height:34px;background:var(--ink);border-radius:7px;display:flex;align-items:center;justify-content:center;}
@@ -55,27 +55,35 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
 .product-lead{font-size:.58rem;color:var(--muted);font-family:var(--mono);margin-bottom:.6rem;}
 .add-btn{width:100%;padding:.52rem;border:1.5px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--surface2);font-weight:700;font-size:.74rem;cursor:pointer;font-family:inherit;transition:all .18s;letter-spacing:.02em;}
 .add-btn:hover{background:var(--ink2);border-color:var(--ink2);}
-.add-btn.in-cart{background:transparent;color:var(--sage);border-color:var(--sage);/* Cart */
-.cart-panel{display:flex;flex-direction:column;padding:1.75rem;overflow-y:auto;background:var(--surface2);border-left:1px solid var(--border);}
+.add-btn.in-cart{background:transparent;color:var(--sage);border-color:var(--sage);}
+.cart-panel{display:flex;flex-direction:column;padding:0;overflow-y:auto;background:var(--surface2);border-left:1px solid var(--border);}
 .cart-panel::-webkit-scrollbar{width:3px;}
 .cart-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.cart-items{flex:1;overflow-y:auto;}
-.cart-item{display:flex;align-items:center;gap:.7rem;padding:.7rem 0;border-bottom:1px solid var(--border);}
+.cart-header{padding:1.5rem 1.75rem 1rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+.cart-items{flex:1;overflow-y:auto;padding:1rem 1.75rem;}
+.cart-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.75rem;transition:all .2s;}
+.cart-item:hover{border-color:var(--ink2);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.cart-item-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;}
 .cart-item-info{flex:1;}
-.cart-item-name{font-size:.76rem;font-weight:600;margin-bottom:.15rem;color:var(--ink);}
-.cart-item-price{font-size:.7rem;color:var(--muted);}
-.cart-qty{display:flex;align-items:center;gap:.35rem;}
-.qty-btn{width:22px;height:22px;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:5px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .18s;}
-.qty-btn:hover{border-color:var(--ink);background:var(--bg);}
-.qty-val{font-size:.82rem;font-weight:600;min-width:18px;text-align:center;color:var(--ink);}
-.remove-btn{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:.8rem;transition:color .18s;padding:.15rem;}
-.remove-btn:hover{color:var(--red);}
-.cart-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:1.1rem;}
-.summary-row{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);padding:.17rem 0;}
-.summary-total{display:flex;justify-content:space-between;font-size:.93rem;font-weight:700;padding:.45rem 0;border-top:1px solid var(--border);margin-top:.4rem;color:var(--ink);}
-.order-btn{width:100%;padding:.9rem;border:2px solid var(--ink);border-radius:7px;background:var(--ink);color:var(--surface2);font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:.02em;}
-.order-btn:hover{background:var(--ink2);border-color:var(--ink2);}
-.order-btn:disabled{background:var(--border);border-color:var(--border);color:var(--muted);cursor:not-allowed;}
+.cart-item-name{font-size:.82rem;font-weight:600;margin-bottom:.25rem;color:var(--ink);line-height:1.3;}
+.cart-item-sku{font-size:.62rem;color:var(--muted2);font-family:var(--mono);}
+.remove-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.7rem;transition:all .18s;padding:.3rem .55rem;border-radius:5px;font-weight:600;font-family:inherit;}
+.remove-btn:hover{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.cart-item-footer{display:flex;justify-content:space-between;align-items:center;margin-top:.65rem;padding-top:.65rem;border-top:1px solid var(--border);}
+.cart-item-price{font-size:.88rem;font-weight:700;color:var(--ink);}
+.cart-qty{display:flex;align-items:center;gap:.4rem;}
+.qty-btn{width:26px;height:26px;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .18s;font-weight:600;}
+.qty-btn:hover{border-color:var(--ink);background:var(--ink);color:var(--surface2);}
+.qty-val{font-size:.85rem;font-weight:600;min-width:24px;text-align:center;color:var(--ink);}
+.cart-footer{margin-top:auto;border-top:2px solid var(--border);padding:1.5rem 1.75rem;background:var(--surface);}
+.summary-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;}
+.summary-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);padding:.35rem 0;gap:.5rem;}
+.summary-row-label{font-weight:500;}
+.summary-row-value{font-weight:600;color:var(--ink2);}
+.summary-total{display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;padding:.75rem 0;border-top:2px solid var(--border);margin-top:.5rem;color:var(--ink);gap:.5rem;}
+.checkout-btn{width:100%;padding:1rem;border:none;border-radius:8px;background:var(--ink);color:var(--surface2);font-weight:700;font-size:.92rem;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:.02em;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.checkout-btn:hover{background:var(--ink2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.checkout-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
 .status-box{margin-top:1rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:none;}
 .status-box.visible{display:block;animation:slideIn .3s ease;}
 @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -91,7 +99,7 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(28,28,28,.25)}50%{box-shadow:0 0 0 4px rgba(28,28,28,0)}}
 .tl-detail{color:var(--muted);font-size:.65rem;margin-top:.1rem;}
 .toast{position:fixed;bottom:2rem;right:2rem;padding:.65rem 1.1rem;background:var(--ink);border-radius:8px;color:var(--surface2);font-size:.78rem;font-weight:600;transform:translateY(100px);opacity:0;transition:all .3s;z-index:999;}
-.toast.show{transform:translateY(0);opacity:1;};}
+.toast.show{transform:translateY(0);opacity:1;}
 </style>
 </head>
 <body>
@@ -121,23 +129,34 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
   </div>
 
   <div class="cart-panel" id="cartPanel">
-    <div class="panel-title">Shopping Cart</div>
-    <div class="cart-empty" id="cartEmpty">
-      <div class="cart-empty-icon" style="font-size:2rem;opacity:.15;font-family:var(--mono);font-weight:700;color:var(--muted)">[ ]</div>
-      <div style="font-size:.8rem;font-weight:600;color:var(--ink);">Your cart is empty</div>
-      <div style="font-size:.7rem;color:var(--muted2);">Add products to trigger the supply chain</div>
+    <div class="cart-header">
+      <div class="panel-title">Shopping Cart</div>
+    </div>
+    <div class="cart-empty" id="cartEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;text-align:center;">
+      <div style="font-size:3rem;opacity:.1;margin-bottom:1rem;">🛒</div>
+      <div style="font-size:.9rem;font-weight:600;color:var(--ink);margin-bottom:.4rem;">Your cart is empty</div>
+      <div style="font-size:.72rem;color:var(--muted2);">Add products to get started</div>
     </div>
     <div class="cart-items" id="cartItems" style="display:none"></div>
     <div class="cart-footer" id="cartFooter" style="display:none">
-      <div>
-        <div class="summary-row"><span>Items</span><span id="itemCount">0</span></div>
-        <div class="summary-row"><span>Units</span><span id="unitDemand">0</span></div>
-        <div class="summary-total"><span>Total</span><span id="cartTotal">$0.00</span></div>
+      <div class="summary-section">
+        <div class="summary-row">
+          <span class="summary-row-label">Items in cart</span>
+          <span class="summary-row-value" id="itemCount">0</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-row-label">Total units</span>
+          <span class="summary-row-value" id="unitDemand">0</span>
+        </div>
+        <div class="summary-total">
+          <span>Total Amount</span>
+          <span id="cartTotal">₹0.00</span>
+        </div>
       </div>
-      <button class="order-btn" id="orderBtn" onclick="placeOrder()">Place Order — Trigger Supply Chain</button>
+      <button class="checkout-btn" id="orderBtn" onclick="placeOrder()">Proceed to Checkout</button>
       <div class="status-box" id="statusBox">
         <div class="status-order-id" id="statusOrderId"></div>
-        <div class="status-title">📦 Order Journey</div>
+        <div class="status-title">Order Journey</div>
         <div class="timeline" id="timeline"></div>
       </div>
     </div>
@@ -151,34 +170,30 @@ const API = '';
 let cart = {}, products = {}, currentOrderId = null, evtSource = null;
 
 const DEMO_PRODUCTS = [
-  // Raw Materials
-  {id:'RM-001',name:'Cold-Rolled Steel Coils',category:'Raw Materials',description:'High-strength HSLA steel coils, 1.5mm gauge. For stamping and roll-forming operations.',price:{amount:2840},inventory:{available:120},sku:'CRSC-1500',lead:'5–7 days',icon:'🔩'},
-  {id:'RM-002',name:'6061-T6 Aluminium Sheet',category:'Raw Materials',description:'Aerospace-grade aluminium alloy, 3mm thickness. Excellent machinability and corrosion resistance.',price:{amount:1250},inventory:{available:85},sku:'AL61-T6',lead:'3–5 days',icon:'🪨'},
-  {id:'RM-003',name:'Electrolytic Copper Wire',category:'Raw Materials',description:'99.9% pure copper conductor, 2.5mm AWG. Industrial grade for winding and cabling.',price:{amount:780},inventory:{available:200},sku:'ECW-25',lead:'2–4 days',icon:'⚡'},
-  {id:'RM-004',name:'Carbon Fiber Prepreg',category:'Raw Materials',description:'Unidirectional carbon fiber, 240 GSM. High modulus for structural composite applications.',price:{amount:4200},inventory:{available:22},sku:'CFP-240',lead:'8–12 days',icon:'🧵'},
-  {id:'RM-005',name:'Polyamide 66 Pellets (GF30)',category:'Raw Materials',description:'Glass-filled PA66 pellets, 30% GF. High heat and chemical resistance for injection moulding.',price:{amount:380},inventory:{available:500},sku:'PA66-GF30',lead:'2–3 days',icon:'🔵'},
-  {id:'RM-006',name:'Borosilicate Glass Tubes',category:'Raw Materials',description:'Precision borosilicate tubing, OD 25mm. Low thermal expansion, high purity.',price:{amount:290},inventory:{available:60},sku:'BGT-25',lead:'6–9 days',icon:'🧪'},
-  // Components
-  {id:'CP-001',name:'AC Servo Motor 2.0 kW',category:'Components',description:'Closed-loop AC servo, 2000W, IP65. Integrated encoder for precise CNC motion control.',price:{amount:1640},inventory:{available:45},sku:'SRV-2K',lead:'5–8 days',icon:'⚙️'},
-  {id:'CP-002',name:'PLC Controller S7-1200',category:'Components',description:'Compact PLC, 14 DI/10 DO, PROFINET enabled. Industry 4.0 ready, TIA Portal programmable.',price:{amount:2180},inventory:{available:28},sku:'PLC-S71200',lead:'7–10 days',icon:'🖥️'},
-  {id:'CP-003',name:'Inductive Proximity Sensor',category:'Components',description:'NPN NO, M18 housing, 8mm sensing range. Stainless steel face, IP67 rated.',price:{amount:95},inventory:{available:350},sku:'IPS-M18',lead:'1–2 days',icon:'📡'},
-  {id:'CP-004',name:'4-Layer Industrial PCB',category:'Components',description:'FR4 substrate, 1oz copper, ENIG finish. Designed for high-frequency switching circuits.',price:{amount:220},inventory:{available:180},sku:'PCB-4L',lead:'4–6 days',icon:'🔌'},
-  {id:'CP-005',name:'Hydraulic Cylinder 50 kN',category:'Components',description:'Double-acting, 50kN force, 300mm stroke. Honed barrel, hard chrome rod, BSPP ports.',price:{amount:3100},inventory:{available:14},sku:'HYD-50K',lead:'10–14 days',icon:'🔧'},
-  {id:'CP-006',name:'Angular Contact Bearing 7208',category:'Components',description:'40×80×18mm angular contact ball bearing. Grease lubricated, C3 clearance, steel cage.',price:{amount:145},inventory:{available:240},sku:'ACB-7208',lead:'2–3 days',icon:'🔩'},
-  {id:'CP-007',name:'Pt100 RTD Temperature Probe',category:'Components',description:'Class A resistance temperature detector, 6mm dia, 150mm insertion. −50 to +400 °C.',price:{amount:185},inventory:{available:90},sku:'RTD-PT100',lead:'3–5 days',icon:'🌡️'},
-  {id:'CP-008',name:'24 VDC Power Supply 10 A',category:'Components',description:'DIN-rail mount SMPS, 24VDC / 10A output. Wide input 85–264 VAC, CE/UL listed.',price:{amount:165},inventory:{available:120},sku:'PSU-24V10',lead:'2–3 days',icon:'🔋'},
-  // Assemblies
-  {id:'AS-001',name:'6-Axis Robotic Arm Module',category:'Assemblies',description:'Industrial robot, 6kg payload, 900mm reach. Pre-calibrated with teach pendant and safety I/O.',price:{amount:28500},inventory:{available:5},sku:'ARM-6AX',lead:'15–21 days',icon:'🦾'},
-  {id:'AS-002',name:'CNC Spindle Unit 7.5 kW',category:'Assemblies',description:'High-speed CNC spindle, 7.5kW, 24000 RPM. HSK-A63 tooling interface, liquid cooled.',price:{amount:9800},inventory:{available:8},sku:'SPD-7K5',lead:'12–16 days',icon:'🌀'},
-  {id:'AS-003',name:'Modular Conveyor Belt — 3 m',category:'Assemblies',description:'Variable-speed belt conveyor, 80kg capacity, plug-and-play. SEW inverter drive included.',price:{amount:6400},inventory:{available:12},sku:'CVR-3M',lead:'10–14 days',icon:'📦'},
-  {id:'AS-004',name:'Automated MIG Welding Head',category:'Assemblies',description:'Torch assembly with wire feeder, gas solenoid and automated nozzle cleaning station.',price:{amount:4750},inventory:{available:15},sku:'WLD-MIG',lead:'8–12 days',icon:'🔥'},
-  {id:'AS-005',name:'Machine Vision Inspection Unit',category:'Assemblies',description:'12MP colour camera, telecentric lens, integrated LED ring light and onboard defect-detection PC.',price:{amount:11200},inventory:{available:6},sku:'VIS-12M',lead:'14–18 days',icon:'👁️'},
-  // Consumables
-  {id:'CN-001',name:'Carbide Turning Inserts ×10',category:'Consumables',description:'CNMG 120408 grade, PVD TiAlN coated. For steel and stainless steels at medium to high feeds.',price:{amount:68},inventory:{available:1200},sku:'INS-CNMG',lead:'1–2 days',icon:'✂️'},
-  {id:'CN-002',name:'Hydraulic Oil ISO VG 46 — 20L',category:'Consumables',description:'Anti-wear mineral hydraulic oil, 20-litre drum. Anti-foam, rust inhibited, zinc-based.',price:{amount:115},inventory:{available:600},sku:'LUB-VG46',lead:'1–2 days',icon:'🛢️'},
-  {id:'CN-003',name:'MIG Wire ER70S-6 — 15 kg',category:'Consumables',description:'AWS ER70S-6 copper-coated mild steel wire, 0.9mm dia, 15kg spool. Excellent weld bead finish.',price:{amount:92},inventory:{available:420},sku:'WIR-70S6',lead:'1–2 days',icon:'🧲'},
-  {id:'CN-004',name:'H14 HEPA Filter Set ×4',category:'Consumables',description:'HEPA filter panels for CNC enclosures, 610×610mm, H14 class. Set of 4.',price:{amount:145},inventory:{available:280},sku:'FLT-HEPA',lead:'3–5 days',icon:'🌬️'},
-  {id:'CN-005',name:'Zirconia Flap Discs ×25',category:'Consumables',description:'125mm, 40 grit zirconia alumina flap discs. Heavy stock removal on weld seams and steel.',price:{amount:48},inventory:{available:800},sku:'GRD-ZA40',lead:'1–2 days',icon:'⭕'},
+  {id:'RM-001',name:'Cold-Rolled Steel Coils',category:'Raw Materials',description:'High-strength HSLA steel coils, 1.5mm gauge. For stamping and roll-forming operations.',price:{amount:2840},inventory:{available:120},sku:'CRSC-1500',lead:'5–7 days'},
+  {id:'RM-002',name:'6061-T6 Aluminium Sheet',category:'Raw Materials',description:'Aerospace-grade aluminium alloy, 3mm thickness. Excellent machinability and corrosion resistance.',price:{amount:1250},inventory:{available:85},sku:'AL61-T6',lead:'3–5 days'},
+  {id:'RM-003',name:'Electrolytic Copper Wire',category:'Raw Materials',description:'99.9% pure copper conductor, 2.5mm AWG. Industrial grade for winding and cabling.',price:{amount:780},inventory:{available:200},sku:'ECW-25',lead:'2–4 days'},
+  {id:'RM-004',name:'Carbon Fiber Prepreg',category:'Raw Materials',description:'Unidirectional carbon fiber, 240 GSM. High modulus for structural composite applications.',price:{amount:4200},inventory:{available:22},sku:'CFP-240',lead:'8–12 days'},
+  {id:'RM-005',name:'Polyamide 66 Pellets (GF30)',category:'Raw Materials',description:'Glass-filled PA66 pellets, 30% GF. High heat and chemical resistance for injection moulding.',price:{amount:380},inventory:{available:500},sku:'PA66-GF30',lead:'2–3 days'},
+  {id:'RM-006',name:'Borosilicate Glass Tubes',category:'Raw Materials',description:'Precision borosilicate tubing, OD 25mm. Low thermal expansion, high purity.',price:{amount:290},inventory:{available:60},sku:'BGT-25',lead:'6–9 days'},
+  {id:'CP-001',name:'AC Servo Motor 2.0 kW',category:'Components',description:'Closed-loop AC servo, 2000W, IP65. Integrated encoder for precise CNC motion control.',price:{amount:1640},inventory:{available:45},sku:'SRV-2K',lead:'5–8 days'},
+  {id:'CP-002',name:'PLC Controller S7-1200',category:'Components',description:'Compact PLC, 14 DI/10 DO, PROFINET enabled. Industry 4.0 ready, TIA Portal programmable.',price:{amount:2180},inventory:{available:28},sku:'PLC-S71200',lead:'7–10 days'},
+  {id:'CP-003',name:'Inductive Proximity Sensor',category:'Components',description:'NPN NO, M18 housing, 8mm sensing range. Stainless steel face, IP67 rated.',price:{amount:95},inventory:{available:350},sku:'IPS-M18',lead:'1–2 days'},
+  {id:'CP-004',name:'4-Layer Industrial PCB',category:'Components',description:'FR4 substrate, 1oz copper, ENIG finish. Designed for high-frequency switching circuits.',price:{amount:220},inventory:{available:180},sku:'PCB-4L',lead:'4–6 days'},
+  {id:'CP-005',name:'Hydraulic Cylinder 50 kN',category:'Components',description:'Double-acting, 50kN force, 300mm stroke. Honed barrel, hard chrome rod, BSPP ports.',price:{amount:3100},inventory:{available:14},sku:'HYD-50K',lead:'10–14 days'},
+  {id:'CP-006',name:'Angular Contact Bearing 7208',category:'Components',description:'40×80×18mm angular contact ball bearing. Grease lubricated, C3 clearance, steel cage.',price:{amount:145},inventory:{available:240},sku:'ACB-7208',lead:'2–3 days'},
+  {id:'CP-007',name:'Pt100 RTD Temperature Probe',category:'Components',description:'Class A resistance temperature detector, 6mm dia, 150mm insertion. −50 to +400 °C.',price:{amount:185},inventory:{available:90},sku:'RTD-PT100',lead:'3–5 days'},
+  {id:'CP-008',name:'24 VDC Power Supply 10 A',category:'Components',description:'DIN-rail mount SMPS, 24VDC / 10A output. Wide input 85–264 VAC, CE/UL listed.',price:{amount:165},inventory:{available:120},sku:'PSU-24V10',lead:'2–3 days'},
+  {id:'AS-001',name:'6-Axis Robotic Arm Module',category:'Assemblies',description:'Industrial robot, 6kg payload, 900mm reach. Pre-calibrated with teach pendant and safety I/O.',price:{amount:28500},inventory:{available:5},sku:'ARM-6AX',lead:'15–21 days'},
+  {id:'AS-002',name:'CNC Spindle Unit 7.5 kW',category:'Assemblies',description:'High-speed CNC spindle, 7.5kW, 24000 RPM. HSK-A63 tooling interface, liquid cooled.',price:{amount:9800},inventory:{available:8},sku:'SPD-7K5',lead:'12–16 days'},
+  {id:'AS-003',name:'Modular Conveyor Belt — 3 m',category:'Assemblies',description:'Variable-speed belt conveyor, 80kg capacity, plug-and-play. SEW inverter drive included.',price:{amount:6400},inventory:{available:12},sku:'CVR-3M',lead:'10–14 days'},
+  {id:'AS-004',name:'Automated MIG Welding Head',category:'Assemblies',description:'Torch assembly with wire feeder, gas solenoid and automated nozzle cleaning station.',price:{amount:4750},inventory:{available:15},sku:'WLD-MIG',lead:'8–12 days'},
+  {id:'AS-005',name:'Machine Vision Inspection Unit',category:'Assemblies',description:'12MP colour camera, telecentric lens, integrated LED ring light and onboard defect-detection PC.',price:{amount:11200},inventory:{available:6},sku:'VIS-12M',lead:'14–18 days'},
+  {id:'CN-001',name:'Carbide Turning Inserts ×10',category:'Consumables',description:'CNMG 120408 grade, PVD TiAlN coated. For steel and stainless steels at medium to high feeds.',price:{amount:68},inventory:{available:1200},sku:'INS-CNMG',lead:'1–2 days'},
+  {id:'CN-002',name:'Hydraulic Oil ISO VG 46 — 20L',category:'Consumables',description:'Anti-wear mineral hydraulic oil, 20-litre drum. Anti-foam, rust inhibited, zinc-based.',price:{amount:115},inventory:{available:600},sku:'LUB-VG46',lead:'1–2 days'},
+  {id:'CN-003',name:'MIG Wire ER70S-6 — 15 kg',category:'Consumables',description:'AWS ER70S-6 copper-coated mild steel wire, 0.9mm dia, 15kg spool. Excellent weld bead finish.',price:{amount:92},inventory:{available:420},sku:'WIR-70S6',lead:'1–2 days'},
+  {id:'CN-004',name:'H14 HEPA Filter Set ×4',category:'Consumables',description:'HEPA filter panels for CNC enclosures, 610×610mm, H14 class. Set of 4.',price:{amount:145},inventory:{available:280},sku:'FLT-HEPA',lead:'3–5 days'},
+  {id:'CN-005',name:'Zirconia Flap Discs ×25',category:'Consumables',description:'125mm, 40 grit zirconia alumina flap discs. Heavy stock removal on weld seams and steel.',price:{amount:48},inventory:{available:800},sku:'GRD-ZA40',lead:'1–2 days'},
 ];
 
 const STAGES = [
@@ -194,16 +209,13 @@ const STAGES = [
 ];
 
 async function loadProducts() {
-  // Always display the rich demo catalog for consistent UI
   products = {};
   DEMO_PRODUCTS.forEach(p => { products[p.id] = p; });
   const cats = [...new Set(DEMO_PRODUCTS.map(p => p.category))];
   renderCategories(cats); renderProducts(DEMO_PRODUCTS);
-  // Background: sync real inventory availability from API if server is up
   try {
     const r = await fetch(API + '/api/inventory');
     const inv = await r.json();
-    // Update availability based on live inventory data (matched by sku if found)
     DEMO_PRODUCTS.forEach(p => {
       if (inv[p.sku]) { p.inventory = { available: inv[p.sku].inventory }; }
     });
@@ -211,14 +223,7 @@ async function loadProducts() {
       const activeCat = document.querySelector('.cat-btn.active')?.textContent;
       return !activeCat || activeCat === 'All' || p.category === activeCat;
     }));
-  } catch(_) { /* server unavailable — demo inventory levels already set */ }
-}
-
-function loadDemo() {
-  products = {};
-  DEMO_PRODUCTS.forEach(p => { products[p.id] = p; });
-  const cats = [...new Set(DEMO_PRODUCTS.map(p => p.category))];
-  renderCategories(cats); renderProducts(DEMO_PRODUCTS);
+  } catch(_) { }
 }
 
 function renderCategories(cats) {
@@ -256,7 +261,7 @@ function renderProducts(prods) {
       <div class="product-name">${p.name}</div>
       <div class="product-desc">${p.description || 'Industrial grade component'}</div>
       <div class="product-meta">
-        <div class="product-price">$${(p.price?.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+        <div class="product-price">₹${(p.price?.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
         <div class="product-stock ${scls}">${slbl}</div>
       </div>
       <div class="product-lead">Lead time: ${p.lead || 'TBD'}</div>
@@ -272,35 +277,71 @@ function addToCart(sku) {
   const activeCat = document.querySelector('.cat-btn.active').textContent;
   renderProducts(activeCat === 'All' ? prods : prods.filter(p => p.category === activeCat));
 }
-function changeQty(sku, delta) { cart[sku] = (cart[sku] || 0) + delta; if (cart[sku] <= 0) delete cart[sku]; updateCart(); }
-function removeItem(sku) { delete cart[sku]; updateCart(); }
+
+function changeQty(sku, delta) { 
+  cart[sku] = (cart[sku] || 0) + delta; 
+  if (cart[sku] <= 0) delete cart[sku]; 
+  updateCart(); 
+}
+
+function removeItem(sku) { 
+  delete cart[sku]; 
+  updateCart(); 
+}
 
 function updateCart() {
   const skus = Object.keys(cart);
   document.getElementById('cartCount').textContent = skus.length;
   const empty = document.getElementById('cartEmpty'), items = document.getElementById('cartItems'), footer = document.getElementById('cartFooter');
-  if (skus.length === 0) { empty.style.display = 'flex'; items.style.display = 'none'; footer.style.display = 'none'; return; }
-  empty.style.display = 'none'; items.style.display = 'block'; footer.style.display = 'block';
-  let total = 0, units = 0; items.innerHTML = '';
+  if (skus.length === 0) { 
+    empty.style.display = 'flex'; 
+    items.style.display = 'none'; 
+    footer.style.display = 'none'; 
+    return; 
+  }
+  empty.style.display = 'none'; 
+  items.style.display = 'block'; 
+  footer.style.display = 'block';
+  let total = 0, units = 0; 
+  items.innerHTML = '';
   skus.forEach(sku => {
     const p = products[sku], qty = cart[sku], price = p?.price?.amount || 0;
     total += price * qty; units += qty;
-    const row = document.createElement('div'); row.className = 'cart-item';
-    row.innerHTML = `<div class="cart-item-info"><div class="cart-item-name">${p?.icon || ''} ${p?.name || sku}</div><div class="cart-item-price">$${(price * qty).toLocaleString('en-US', {minimumFractionDigits: 2})}</div></div><div class="cart-qty"><button class="qty-btn" onclick="changeQty('${sku}',-1)">−</button><div class="qty-val">${qty}</div><button class="qty-btn" onclick="changeQty('${sku}',1)">+</button></div><button class="remove-btn" onclick="removeItem('${sku}')">✕</button>`;
+    const row = document.createElement('div'); 
+    row.className = 'cart-item';
+    row.innerHTML = `
+      <div class="cart-item-header">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${p?.name || sku}</div>
+          <div class="cart-item-sku">#${p?.sku || sku}</div>
+        </div>
+        <button class="remove-btn" onclick="removeItem('${sku}')">Remove</button>
+      </div>
+      <div class="cart-item-footer">
+        <div class="cart-item-price">₹${(price * qty).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        <div class="cart-qty">
+          <button class="qty-btn" onclick="changeQty('${sku}',-1)">−</button>
+          <div class="qty-val">${qty}</div>
+          <button class="qty-btn" onclick="changeQty('${sku}',1)">+</button>
+        </div>
+      </div>`;
     items.appendChild(row);
   });
   document.getElementById('itemCount').textContent = skus.length;
   document.getElementById('unitDemand').textContent = units;
-  document.getElementById('cartTotal').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
+  document.getElementById('cartTotal').textContent = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2});
 }
 
 async function placeOrder() {
   if (Object.keys(cart).length === 0) return;
-  const btn = document.getElementById('orderBtn'); btn.disabled = true; btn.textContent = '⏳ Processing…';
+  const btn = document.getElementById('orderBtn'); 
+  btn.disabled = true; 
+  btn.textContent = 'Processing…';
   const items = Object.entries(cart).map(([sku, qty]) => ({sku, qty}));
   try {
     const r = await fetch(API + '/api/order', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({items})});
-    const data = await r.json(); currentOrderId = data.order_id;
+    const data = await r.json(); 
+    currentOrderId = data.order_id;
     document.getElementById('statusBox').classList.add('visible');
     document.getElementById('statusOrderId').textContent = 'Order: ' + currentOrderId;
     buildTimeline();
@@ -308,14 +349,21 @@ async function placeOrder() {
     if (evtSource) evtSource.close();
     evtSource = new EventSource(API + '/api/stream/' + currentOrderId);
     evtSource.onmessage = e => handleEvent(JSON.parse(e.data));
-    btn.textContent = '⏳ Agents Working…';
-  } catch(e) { btn.disabled = false; btn.textContent = '🚀 Place Order & Trigger Supply Chain'; showToast('Backend offline — demo mode'); }
+    btn.textContent = 'Agents Working…';
+  } catch(e) { 
+    btn.disabled = false; 
+    btn.textContent = 'Proceed to Checkout'; 
+    showToast('Backend offline — demo mode'); 
+  }
 }
 
 function buildTimeline() {
-  const tl = document.getElementById('timeline'); tl.innerHTML = '';
+  const tl = document.getElementById('timeline'); 
+  tl.innerHTML = '';
   STAGES.forEach(s => {
-    const row = document.createElement('div'); row.className = 'tl-step'; row.id = 'tl-' + s.id;
+    const row = document.createElement('div'); 
+    row.className = 'tl-step'; 
+    row.id = 'tl-' + s.id;
     row.innerHTML = `<div class="tl-dot" id="dot-${s.id}"></div><div><div>${s.icon} ${s.label}</div><div class="tl-detail" id="detail-${s.id}"></div></div>`;
     tl.appendChild(row);
   });
@@ -327,21 +375,50 @@ function handleEvent(ev) {
     STAGES.forEach(s => {
       const el = document.getElementById('tl-' + s.id), dot = document.getElementById('dot-' + s.id);
       if (!el) return;
-      if (s.id === ev.stage) { el.classList.remove('done'); el.classList.add('active'); dot.textContent = ''; document.getElementById('detail-' + s.id).textContent = ev.detail || ''; found = true; }
-      else if (!found) { el.classList.remove('active'); el.classList.add('done'); dot.textContent = '✓'; }
+      if (s.id === ev.stage) { 
+        el.classList.remove('done'); 
+        el.classList.add('active'); 
+        dot.textContent = ''; 
+        document.getElementById('detail-' + s.id).textContent = ev.detail || ''; 
+        found = true; 
+      }
+      else if (!found) { 
+        el.classList.remove('active'); 
+        el.classList.add('done'); 
+        dot.textContent = '✓'; 
+      }
     });
     if (ev.status === 'DELIVERED') {
-      STAGES.forEach(s => { const el = document.getElementById('tl-' + s.id), dot = document.getElementById('dot-' + s.id); if (!el) return; el.classList.remove('active'); el.classList.add('done'); dot.textContent = '✓'; });
-      document.getElementById('orderBtn').textContent = '✅ Order Delivered!';
+      STAGES.forEach(s => { 
+        const el = document.getElementById('tl-' + s.id), dot = document.getElementById('dot-' + s.id); 
+        if (!el) return; 
+        el.classList.remove('active'); 
+        el.classList.add('done'); 
+        dot.textContent = '✓'; 
+      });
+      document.getElementById('orderBtn').textContent = 'Order Delivered!';
       document.getElementById('orderBtn').disabled = false;
-      cart = {}; updateCart(); showToast('Order delivered! 🎉 Supply chain complete.'); if (evtSource) evtSource.close();
+      cart = {}; 
+      updateCart(); 
+      showToast('Order delivered! Supply chain complete.'); 
+      if (evtSource) evtSource.close();
     }
   }
 }
 
-function scrollToCart() { document.getElementById('cartPanel').scrollIntoView({behavior:'smooth'}); }
-function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800); }
-loadProducts(); setInterval(loadProducts, 30000);
+function scrollToCart() { 
+  document.getElementById('cartPanel').scrollIntoView({behavior:'smooth'}); 
+}
+
+function showToast(msg) { 
+  const t = document.getElementById('toast'); 
+  t.textContent = msg; 
+  t.classList.add('show'); 
+  setTimeout(() => t.classList.remove('show'), 2800); 
+}
+
+loadProducts(); 
+setInterval(loadProducts, 30000);
 </script>
 </body>
 </html>
