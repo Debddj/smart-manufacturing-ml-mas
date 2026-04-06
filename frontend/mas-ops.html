@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MAS Ops Center — Supply Chain Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#EDE8DF;--s1:#F5F1EB;--s2:#FAFAF8;--s3:#FFFFFF;--border:#D8D2C8;
+  --ink:#1C1C1C;--ink2:#3A3A3A;--muted:#8A8478;--muted2:#B0A99F;
+  --accent:#1C1C1C;--accent-dim:rgba(28,28,28,.06);
+  --active:#2D5A3D;--active-dim:rgba(45,90,61,.1);
+  --busy:#1E3A5F;--busy-dim:rgba(30,58,95,.1);
+  --warn:#7A4A1E;--warn-dim:rgba(122,74,30,.1);
+  --danger:#6B1E1E;--danger-dim:rgba(107,30,30,.09);
+  --mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow:hidden;}
+/* Header */
+header{height:52px;padding:0 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s2);position:relative;z-index:50;}
+.hdr-left{display:flex;align-items:center;gap:1rem;}
+.hdr-logo{display:flex;align-items:center;gap:.55rem;font-size:.88rem;font-weight:700;letter-spacing:.04em;color:var(--ink);}
+.logo-mark{width:26px;height:26px;background:var(--ink);border-radius:5px;display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:14px;height:14px;fill:var(--s2);}
+.live-badge{display:flex;align-items:center;gap:.32rem;padding:.18rem .6rem;background:var(--danger-dim);border:1px solid rgba(107,30,30,.2);border-radius:20px;font-size:.62rem;font-weight:600;color:var(--danger);font-family:var(--mono);letter-spacing:.06em;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--danger);animation:live-pulse 1.5s infinite;}
+@keyframes live-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.hdr-right{display:flex;align-items:center;gap:.65rem;}
+.metric-pill{padding:.18rem .65rem;border:1px solid var(--border);border-radius:14px;font-size:.67rem;font-family:var(--mono);color:var(--muted);background:var(--s1);}
+.metric-pill span{color:var(--ink);font-weight:600;}
+.shop-link{padding:.26rem .85rem;border:1px solid var(--border);border-radius:6px;background:var(--s1);color:var(--muted);cursor:pointer;font-size:.72rem;text-decoration:none;transition:all .18s;font-family:inherit;font-weight:500;}
+.shop-link:hover{border-color:var(--ink);color:var(--ink);background:var(--s2);}
+/* Grid */
+.grid{display:grid;grid-template-columns:1fr 320px;grid-template-rows:1fr 210px;height:calc(100vh - 52px);}
+/* Panel */
+.panel{border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--s1);}
+.panel:last-child{border-right:none;}
+.panel-header{padding:.58rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s2);flex-shrink:0;}
+.ph-title{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);display:flex;align-items:center;gap:.4rem;}
+.ph-title::before{content:'';width:2px;height:10px;border-radius:2px;background:var(--ink);}
+.ph-title.active-c::before{background:var(--active);}
+.ph-title.busy-c::before{background:var(--busy);}
+.ph-title.warn-c::before{background:var(--warn);}
+/* Phase stepper */
+.phase-strip{padding:.48rem 1.1rem;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;display:flex;align-items:center;overflow-x:auto;gap:0;}
+.phase-strip::-webkit-scrollbar{display:none;}
+.ph-step{display:flex;align-items:center;gap:.28rem;padding:.2rem .5rem;border-radius:5px;font-size:.63rem;font-weight:500;color:var(--muted2);white-space:nowrap;transition:all .3s;flex-shrink:0;font-family:var(--mono);letter-spacing:.02em;}
+.ph-step.active{color:var(--active);background:var(--active-dim);border:1px solid rgba(45,90,61,.2);font-weight:600;}
+.ph-step.done{color:var(--muted);}
+.ph-step .ph-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.ph-arrow{color:var(--border);font-size:.62rem;flex-shrink:0;margin:0 .08rem;transition:color .3s;}
+.ph-arrow.done{color:var(--muted2);}
+.ph-arrow.active{color:var(--active);}
+/* Network */
+.network-panel{grid-column:1;grid-row:1;}
+.network-content{flex:1;position:relative;overflow:hidden;}
+#agentSvg{width:100%;height:100%;}
+/* Decision overlay */
+.decision-overlay{position:absolute;bottom:10px;left:12px;max-width:270px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:.6rem .75rem;box-shadow:0 2px 12px rgba(0,0,0,.08);display:none;animation:fadeUp .22s ease;}
+.decision-overlay.visible{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.dec-label{font-size:.57rem;font-family:var(--mono);color:var(--muted);margin-bottom:.18rem;letter-spacing:.08em;text-transform:uppercase;}
+.dec-agent{font-size:.78rem;font-weight:700;color:var(--ink);margin-bottom:.18rem;}
+.dec-text{font-size:.67rem;color:var(--ink2);line-height:1.45;}
+.dec-sub{font-size:.58rem;color:var(--muted2);font-family:var(--mono);margin-top:.22rem;border-top:1px solid var(--border);padding-top:.18rem;}
+/* Agent nodes */
+.agent-node .node-circle{fill:var(--s2);stroke:var(--border);stroke-width:1.5;transition:all .35s;}
+.agent-node.active .node-circle{stroke:var(--active);fill:var(--active-dim);filter:drop-shadow(0 0 10px rgba(45,90,61,.3));animation:node-pulse .9s infinite;}
+.agent-node.busy .node-circle{stroke:var(--busy);fill:var(--busy-dim);filter:drop-shadow(0 0 6px rgba(30,58,95,.25));}
+@keyframes node-pulse{0%,100%{filter:drop-shadow(0 0 6px rgba(45,90,61,.2))}50%{filter:drop-shadow(0 0 16px rgba(45,90,61,.5))}}
+.agent-node .node-icon{font-size:11px;dominant-baseline:central;text-anchor:middle;font-family:'Space Grotesk',sans-serif;font-weight:700;fill:var(--muted);}
+.agent-node.active .node-icon{fill:var(--active);}
+.agent-node.busy .node-icon{fill:var(--busy);}
+.agent-node .node-label{font-family:'Space Grotesk',sans-serif;font-size:9px;fill:var(--ink2);text-anchor:middle;dominant-baseline:central;font-weight:600;}
+.agent-node .node-sub{font-family:'DM Mono',monospace;font-size:7px;fill:var(--muted2);text-anchor:middle;dominant-baseline:central;}
+.agent-node .node-status{font-size:7px;text-anchor:middle;dominant-baseline:central;font-family:'DM Mono',monospace;fill:var(--muted2);}
+.agent-node.active .node-status{fill:var(--active);}
+.agent-node.busy .node-status{fill:var(--busy);}
+.edge-line{stroke:var(--border);stroke-width:1.2;fill:none;opacity:.6;}
+.edge-line.flow{stroke:var(--active);opacity:.8;animation:edge-glow .7s ease-out;}
+@keyframes edge-glow{from{stroke:var(--active);opacity:1;stroke-width:2.2}to{stroke:var(--active);opacity:.5;stroke-width:1.2}}
+/* Feed panel */
+.feed-panel{grid-column:2;grid-row:1/3;border-right:none;border-bottom:none;}
+.feed-content{flex:1;overflow-y:auto;padding:.45rem;}
+.feed-content::-webkit-scrollbar{width:3px;}
+.feed-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.msg-card{padding:.55rem .7rem;margin-bottom:.38rem;border-radius:6px;border:1px solid var(--border);background:var(--s3);animation:msgIn .22s ease;transition:all .18s;cursor:default;}
+.msg-card:hover{border-color:var(--ink2);background:var(--s2);}
+@keyframes msgIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+.msg-header{display:flex;align-items:center;gap:.35rem;margin-bottom:.28rem;}
+.msg-badge{font-size:.57rem;font-family:var(--mono);padding:.07rem .36rem;border-radius:3px;font-weight:600;flex-shrink:0;letter-spacing:.04em;text-transform:uppercase;}
+.badge-alert{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(107,30,30,.2);}
+.badge-warning{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(122,74,30,.2);}
+.badge-info{background:var(--busy-dim);color:var(--busy);border:1px solid rgba(30,58,95,.2);}
+.badge-action{background:var(--active-dim);color:var(--active);border:1px solid rgba(45,90,61,.2);}
+.msg-ts{font-size:.57rem;color:var(--muted2);font-family:var(--mono);margin-left:auto;}
+.msg-route{display:flex;align-items:center;gap:.28rem;font-size:.7rem;font-weight:600;color:var(--ink2);margin-bottom:.18rem;}
+.msg-arrow{color:var(--muted2);font-size:.58rem;}
+.msg-to{color:var(--busy);}
+.msg-payload{font-size:.61rem;color:var(--muted);font-family:var(--mono);background:var(--bg);border-radius:3px;padding:.2rem .36rem;margin-top:.18rem;line-height:1.6;border-left:2px solid var(--border);}
+.msg-payload .k{color:var(--muted2);}
+.msg-payload .v{color:var(--ink);}
+/* Bottom strip */
+.bottom-strip{grid-column:1;grid-row:2;display:grid;grid-template-columns:1fr 1fr;}
+.demand-panel{border-right:1px solid var(--border);}
+#demandCanvas{width:100%;height:100%;}
+/* Status panel */
+.status-panel{display:flex;flex-direction:column;background:var(--s1);}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);flex-shrink:0;}
+.kpi-card{padding:.42rem .55rem;border-right:1px solid var(--border);background:var(--s2);}
+.kpi-card:last-child{border-right:none;}
+.kpi-label{font-size:.55rem;font-family:var(--mono);color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.08rem;}
+.kpi-value{font-size:.95rem;font-weight:700;color:var(--ink);line-height:1.1;}
+.kpi-sub{font-size:.54rem;color:var(--muted2);font-family:var(--mono);}
+.agent-cards-wrap{flex:1;overflow-y:auto;}
+.agent-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;padding:.4rem;}
+.agent-card{background:var(--s3);border:1px solid var(--border);border-radius:5px;padding:.38rem .45rem;transition:all .22s;}
+.agent-card.active{border-color:var(--active);background:var(--active-dim);}
+.agent-card.busy{border-color:var(--busy);background:var(--busy-dim);}
+.ac-name{font-size:.57rem;font-weight:700;color:var(--muted);margin-bottom:.18rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.04em;}
+.ac-status{display:flex;align-items:center;gap:.25rem;font-size:.6rem;font-family:var(--mono);color:var(--ink2);}
+.ac-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
+.dot-idle{background:var(--border);}
+.dot-active{background:var(--active);animation:live-pulse 1s infinite;}
+.dot-busy{background:var(--busy);}
+.ac-msgs{font-size:.54rem;color:var(--muted2);margin-top:.12rem;font-family:var(--mono);}
+.ac-bar{height:2px;background:var(--border);border-radius:1px;margin-top:.22rem;overflow:hidden;}
+.ac-fill{height:100%;border-radius:1px;background:var(--ink);transition:width .5s;}
+.agent-card.active .ac-fill{background:var(--active);}
+.agent-card.busy .ac-fill{background:var(--busy);}
+/* Order bar */
+.order-bar{position:fixed;bottom:0;left:0;right:320px;background:var(--s3);border-top:1px solid var(--border);padding:.42rem 1.4rem;display:none;z-index:40;box-shadow:0 -2px 12px rgba(0,0,0,.06);}
+.order-bar.visible{display:flex;flex-direction:column;gap:.28rem;}
+.ob-header{display:flex;justify-content:space-between;font-size:.64rem;color:var(--muted);font-family:var(--mono);}
+.ob-header span{color:var(--ink);font-weight:600;}
+.ob-stages{display:flex;align-items:center;gap:.1rem;}
+.ob-step{display:flex;align-items:center;gap:.18rem;font-size:.58rem;color:var(--muted2);transition:all .3s;}
+.ob-step.done{color:var(--active);}
+.ob-step.active{color:var(--ink);font-weight:700;}
+.ob-dot{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.5rem;flex-shrink:0;transition:all .3s;font-family:var(--mono);}
+.ob-step.done .ob-dot{border-color:var(--active);background:var(--active-dim);color:var(--active);}
+.ob-step.active .ob-dot{border-color:var(--ink);background:var(--ink);color:var(--s3);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(28,28,28,.25)}50%{box-shadow:0 0 0 4px transparent}}
+.ob-sep{width:12px;height:1px;background:var(--border);flex-shrink:0;}
+.ob-sep.done{background:var(--active);}
+.ob-sep.active{background:var(--ink);}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr-left">
+    <div class="hdr-logo">
+      <div class="logo-mark"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5"/><rect x="8" y="1" width="5" height="5"/><rect x="1" y="8" width="5" height="5"/><rect x="8" y="8" width="5" height="5"/></svg></div>
+      MAS OPS CENTER
+    </div>
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+  </div>
+  <div class="hdr-right">
+    <div class="metric-pill">Orders <span id="hdrOrders">0</span></div>
+    <div class="metric-pill">Messages <span id="hdrMsgs">0</span></div>
+    <div class="metric-pill">Fill Rate <span id="hdrFill">—</span></div>
+    <a href="/shop" class="shop-link">Shop</a>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="panel network-panel">
+    <div class="panel-header">
+      <div class="ph-title">Agent Network</div>
+      <div style="font-size:.6rem;color:var(--muted2);font-family:var(--mono)" id="activeOrder">No active order</div>
+    </div>
+    <div class="phase-strip">
+      <div class="ph-step" id="ph-intake"><div class="ph-dot"></div>Order Intake</div>
+      <div class="ph-arrow" id="pa-0">›</div>
+      <div class="ph-step" id="ph-inventory"><div class="ph-dot"></div>Inventory Check</div>
+      <div class="ph-arrow" id="pa-1">›</div>
+      <div class="ph-step" id="ph-procurement"><div class="ph-dot"></div>Procurement</div>
+      <div class="ph-arrow" id="pa-2">›</div>
+      <div class="ph-step" id="ph-distribution"><div class="ph-dot"></div>Distribution</div>
+      <div class="ph-arrow" id="pa-3">›</div>
+      <div class="ph-step" id="ph-fulfillment"><div class="ph-dot"></div>Fulfillment</div>
+      <div class="ph-arrow" id="pa-4">›</div>
+      <div class="ph-step" id="ph-logistics"><div class="ph-dot"></div>Logistics</div>
+      <div class="ph-arrow" id="pa-5">›</div>
+      <div class="ph-step" id="ph-delivered"><div class="ph-dot"></div>Delivered</div>
+    </div>
+    <div class="network-content">
+      <svg id="agentSvg" viewBox="0 0 900 420"></svg>
+      <div class="decision-overlay" id="decisionOverlay">
+        <div class="dec-label">Active Agent Decision</div>
+        <div class="dec-agent" id="decAgent">—</div>
+        <div class="dec-text" id="decText">Waiting for agent activity…</div>
+        <div class="dec-sub" id="decSub"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel feed-panel">
+    <div class="panel-header">
+      <div class="ph-title busy-c">Message Feed</div>
+      <div style="font-size:.6rem;color:var(--muted2);font-family:var(--mono)" id="feedCount">0 msgs</div>
+    </div>
+    <div class="feed-content" id="feedContent"></div>
+  </div>
+
+  <div class="bottom-strip">
+    <div class="panel demand-panel">
+      <div class="panel-header">
+        <div class="ph-title warn-c">Demand vs Supply</div>
+        <div style="font-size:.58rem;color:var(--muted2);display:flex;gap:.55rem;">
+          <span style="display:flex;align-items:center;gap:.2rem;"><span style="width:12px;height:2px;background:var(--warn);display:inline-block;border-radius:1px;"></span>Demand</span>
+          <span style="display:flex;align-items:center;gap:.2rem;"><span style="width:12px;height:2px;background:var(--active);display:inline-block;border-radius:1px;"></span>Supplied</span>
+          <span style="display:flex;align-items:center;gap:.2rem;"><span style="width:12px;height:2px;background:var(--busy);display:inline-block;border-radius:1px;"></span>Inventory</span>
+        </div>
+      </div>
+      <canvas id="demandCanvas"></canvas>
+    </div>
+    <div class="panel status-panel">
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-label">Orders</div><div class="kpi-value" id="kpiOrders">0</div><div class="kpi-sub">fulfilled</div></div>
+        <div class="kpi-card"><div class="kpi-label">Fill Rate</div><div class="kpi-value" id="kpiFill">—</div><div class="kpi-sub">demand met</div></div>
+        <div class="kpi-card"><div class="kpi-label">Comms</div><div class="kpi-value" id="kpiMsgs">0</div><div class="kpi-sub">messages</div></div>
+        <div class="kpi-card"><div class="kpi-label">Active</div><div class="kpi-value" id="kpiActive">0</div><div class="kpi-sub">of 11 agents</div></div>
+      </div>
+      <div class="panel-header" style="padding:.35rem .75rem;">
+        <div class="ph-title active-c">Agent Status</div>
+      </div>
+      <div class="agent-cards-wrap"><div class="agent-cards" id="agentCards"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="order-bar" id="orderBar">
+  <div class="ob-header">
+    <span>Order <span id="obOrderId" style="font-family:var(--mono)"></span></span>
+    <span id="obStatus"></span>
+  </div>
+  <div class="ob-stages" id="obStages"></div>
+</div>
+
+<script>
+const API='';
+let msgCount=0,orderCount=0,totalDemand=0,totalSupplied=0,demandHistory=[],evtSource=null;
+const urlParams=new URLSearchParams(window.location.search);
+const orderIdParam=urlParams.get('order');
+
+// Phase stepper
+const PHASE_ORDER=['intake','inventory','procurement','distribution','fulfillment','logistics','delivered'];
+const PHASE_MAP={
+  received:'intake',inventory_check:'inventory',
+  procurement:'procurement',warehouse_transfer:'distribution',
+  fulfillment:'fulfillment',logistics:'logistics',
+  last_mile:'logistics',delivered:'delivered'
+};
+function setPhase(s){
+  const ph=PHASE_MAP[s]; if(!ph) return;
+  const idx=PHASE_ORDER.indexOf(ph);
+  PHASE_ORDER.forEach((p,i)=>{
+    const el=document.getElementById('ph-'+p);
+    const ar=document.getElementById('pa-'+i);
+    if(el) el.className='ph-step'+(i<idx?' done':i===idx?' active':'');
+    if(ar) ar.className='ph-arrow'+(i<idx?' done':i===idx?' active':'');
+  });
+}
+
+// All 11 agents (8 active + 3 supporting visible)
+const AGENTS=[
+  {id:'Customer',              abbr:'CUST',  label:'Customer',            sub:'demand source',            x:450, y:25},
+  {id:'OrderManagementAgent',  abbr:'OMA',   label:'Order Mgmt',          sub:'validates & routes',       x:450, y:100},
+  {id:'InventoryAgent',        abbr:'INV',   label:'Inventory',           sub:'checks stock levels',      x:220, y:190},
+  {id:'DistributionHubAgent',  abbr:'DIST',  label:'Distribution Hub',    sub:'routing decisions',        x:450, y:190},
+  {id:'ProcurementAgent',      abbr:'PROC',  label:'Procurement',         sub:'sources materials',        x:680, y:190},
+  {id:'SupplierDiscoveryAgent',abbr:'SDA',   label:'Supplier Discovery',  sub:'supplier node network',    x:800, y:285},
+  {id:'WarehouseAgent',        abbr:'WH-A',  label:'Warehouse A',         sub:'primary storage',          x:120, y:285},
+  {id:'SupplierAgent',         abbr:'SUP',   label:'Supplier',            sub:'delivers goods',           x:680, y:285},
+  {id:'FulfillmentAgent',      abbr:'FULL',  label:'Fulfillment',         sub:'packs & dispatches',       x:320, y:285},
+  {id:'LogisticsAgent',        abbr:'LOG',   label:'Logistics',           sub:'routes shipments',         x:450, y:370},
+  {id:'LastMileDeliveryAgent', abbr:'LMD',   label:'Last Mile',           sub:'delivers to door',         x:580, y:285},
+];
+const EDGES=[
+  ['Customer','OrderManagementAgent'],
+  ['OrderManagementAgent','InventoryAgent'],
+  ['OrderManagementAgent','DistributionHubAgent'],
+  ['OrderManagementAgent','ProcurementAgent'],
+  ['InventoryAgent','WarehouseAgent'],
+  ['InventoryAgent','FulfillmentAgent'],
+  ['DistributionHubAgent','WarehouseAgent'],
+  ['DistributionHubAgent','FulfillmentAgent'],
+  ['ProcurementAgent','SupplierAgent'],
+  ['ProcurementAgent','SupplierDiscoveryAgent'],
+  ['SupplierAgent','WarehouseAgent'],
+  ['SupplierDiscoveryAgent','SupplierAgent'],
+  ['FulfillmentAgent','LogisticsAgent'],
+  ['LogisticsAgent','LastMileDeliveryAgent'],
+  ['LastMileDeliveryAgent','Customer'],
+];
+
+function buildGraph(){
+  const svg=document.getElementById('agentSvg');
+  const W=svg.parentElement.clientWidth||900, H=svg.parentElement.clientHeight||420;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const sx=W/900, sy=H/420;
+  const pos={};
+  AGENTS.forEach(a=>{pos[a.id]={x:a.x*sx, y:a.y*sy};});
+  svg.innerHTML=`<defs>
+    <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#D8D2C8"/></marker>
+    <marker id="arr-a" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#2D5A3D"/></marker>
+  </defs>`;
+  EDGES.forEach(([f,t])=>{
+    const fp=pos[f],tp=pos[t]; if(!fp||!tp) return;
+    const dx=tp.x-fp.x,dy=tp.y-fp.y,len=Math.sqrt(dx*dx+dy*dy),nr=24;
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('class','edge-line'); ln.setAttribute('id',`edge-${f}-${t}`);
+    ln.setAttribute('x1',fp.x+dx/len*nr); ln.setAttribute('y1',fp.y+dy/len*nr);
+    ln.setAttribute('x2',tp.x-dx/len*nr); ln.setAttribute('y2',tp.y-dy/len*nr);
+    ln.setAttribute('marker-end','url(#arr)'); svg.appendChild(ln);
+  });
+  AGENTS.forEach(a=>{
+    const{x,y}=pos[a.id];
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','agent-node idle'); g.setAttribute('id','node-'+a.id);
+    g.setAttribute('transform',`translate(${x},${y})`);
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('class','node-circle'); c.setAttribute('r','23'); g.appendChild(c);
+    const ico=document.createElementNS('http://www.w3.org/2000/svg','text');
+    ico.setAttribute('class','node-icon'); ico.setAttribute('y','-4'); ico.textContent=a.abbr; g.appendChild(ico);
+    const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('class','node-label'); lbl.setAttribute('y','10'); lbl.textContent=a.label; g.appendChild(lbl);
+    const sub=document.createElementNS('http://www.w3.org/2000/svg','text');
+    sub.setAttribute('class','node-sub'); sub.setAttribute('y','20'); sub.textContent=a.sub; g.appendChild(sub);
+    const st=document.createElementNS('http://www.w3.org/2000/svg','text');
+    st.setAttribute('class','node-status'); st.setAttribute('y','34'); st.setAttribute('id','node-status-'+a.id); st.textContent='IDLE'; g.appendChild(st);
+    svg.appendChild(g);
+  });
+}
+
+function setNodeStatus(id,status){
+  const n=document.getElementById('node-'+id); if(!n) return;
+  n.setAttribute('class','agent-node '+status);
+  const s=document.getElementById('node-status-'+id); if(!s) return;
+  s.textContent=status.toUpperCase();
+}
+
+function animateEdge(f,t){
+  const ln=document.getElementById(`edge-${f}-${t}`)||document.getElementById(`edge-${t}-${f}`);
+  if(!ln) return;
+  ln.classList.add('flow'); ln.setAttribute('marker-end','url(#arr-a)');
+  setTimeout(()=>{ln.classList.remove('flow'); ln.setAttribute('marker-end','url(#arr)');},900);
+  const svg=document.getElementById('agentSvg');
+  const x1=parseFloat(ln.getAttribute('x1')),y1=parseFloat(ln.getAttribute('y1'));
+  const x2=parseFloat(ln.getAttribute('x2')),y2=parseFloat(ln.getAttribute('y2'));
+  const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('r','4'); dot.setAttribute('fill','#2D5A3D'); dot.setAttribute('opacity','0.9');
+  dot.style.transition='all 0.72s cubic-bezier(.4,0,.2,1)';
+  dot.setAttribute('cx',x1); dot.setAttribute('cy',y1); svg.appendChild(dot);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    dot.setAttribute('cx',x2); dot.setAttribute('cy',y2); dot.setAttribute('opacity','0');
+  }));
+  setTimeout(()=>{try{svg.removeChild(dot);}catch(_){}},800);
+}
+
+const BADGE={ALERT:'badge-alert',WARNING:'badge-warning',INFO:'badge-info',ACTION:'badge-action'};
+function addMessageCard(ev){
+  const feed=document.getElementById('feedContent'),bc=BADGE[ev.priority]||'badge-info';
+  if(ev.from&&ev.from!=='Customer'){
+    document.getElementById('decAgent').textContent=ev.from;
+    const p=ev.payload||{};
+    document.getElementById('decText').textContent=p.reason||p.action||p.status||p.message||`Transmitting ${ev.msg_type||'signal'} to ${ev.to}`;
+    document.getElementById('decSub').textContent=`type: ${ev.msg_type||'MSG'} · ${ev.ts||''} · priority: ${ev.priority||'INFO'}`;
+    document.getElementById('decisionOverlay').classList.add('visible');
+  }
+  const pl=fmtPayload(ev.payload);
+  const card=document.createElement('div'); card.className='msg-card';
+  card.innerHTML=`<div class="msg-header"><div class="msg-badge ${bc}">${ev.msg_type||'MSG'}</div><div class="msg-ts">${ev.ts||''}</div></div><div class="msg-route"><span>${ev.from||'—'}</span><span class="msg-arrow">→</span><span class="msg-to">${ev.to||'—'}</span></div>${pl?`<div class="msg-payload">${pl}</div>`:''}`;
+  feed.insertBefore(card,feed.firstChild);
+  while(feed.children.length>80)feed.removeChild(feed.lastChild);
+  msgCount++;
+  document.getElementById('feedCount').textContent=msgCount+' msgs';
+  document.getElementById('hdrMsgs').textContent=msgCount;
+  document.getElementById('kpiMsgs').textContent=msgCount;
+}
+function fmtPayload(p){if(!p)return'';return Object.entries(p).filter(([k])=>k!=='items').slice(0,6).map(([k,v])=>`<span class="k">${k}:</span> <span class="v">${typeof v==='number'?(v%1?v.toFixed(2):v):String(v).slice(0,40)}</span>`).join(' · ');}
+
+function renderAgentCards(states){
+  const c=document.getElementById('agentCards'); c.innerHTML='';
+  const LIST=[
+    {id:'OrderManagementAgent',short:'Order Mgmt'},
+    {id:'InventoryAgent',short:'Inventory'},
+    {id:'DistributionHubAgent',short:'Distribution'},
+    {id:'ProcurementAgent',short:'Procurement'},
+    {id:'SupplierDiscoveryAgent',short:'Sup. Discovery'},
+    {id:'SupplierAgent',short:'Supplier'},
+    {id:'WarehouseAgent',short:'Warehouse A'},
+    {id:'FulfillmentAgent',short:'Fulfillment'},
+    {id:'LogisticsAgent',short:'Logistics'},
+    {id:'LastMileDeliveryAgent',short:'Last Mile'},
+  ];
+  let active=0;
+  const maxMsgs=Math.max(...LIST.map(a=>(states[a.id]||{}).msgs||0),1);
+  LIST.forEach(a=>{
+    const st=states[a.id]||{status:'IDLE',msgs:0},status=(st.status||'IDLE').toLowerCase();
+    if(status==='active'||status==='busy')active++;
+    const dc=status==='active'?'dot-active':status==='busy'?'dot-busy':'dot-idle';
+    const pct=Math.min(100,((st.msgs||0)/maxMsgs)*100);
+    const card=document.createElement('div'); card.className=`agent-card ${status}`;
+    card.innerHTML=`<div class="ac-name">${a.short}</div><div class="ac-status"><div class="ac-dot ${dc}"></div>${st.status||'IDLE'}</div><div class="ac-msgs">${st.msgs||0} msgs</div><div class="ac-bar"><div class="ac-fill" style="width:${pct}%"></div></div>`;
+    c.appendChild(card);
+  });
+  document.getElementById('kpiActive').textContent=active;
+}
+
+function drawDemandCurve(){
+  const canvas=document.getElementById('demandCanvas'),par=canvas.parentElement;
+  canvas.width=par.clientWidth; canvas.height=par.clientHeight-37;
+  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,data=demandHistory;
+  ctx.clearRect(0,0,W,H);
+  if(data.length<2){ctx.fillStyle='rgba(138,132,120,.4)';ctx.font='11px DM Mono,monospace';ctx.textAlign='center';ctx.fillText('Waiting for orders…',W/2,H/2);return;}
+  const maxVal=Math.max(...data.map(d=>Math.max(d.demand,d.inventory,d.satisfied)))*1.2||100;
+  const px=i=>(i/(data.length-1))*(W-44)+22, py=v=>H-14-(v/maxVal)*(H-26);
+  ctx.strokeStyle='rgba(216,210,200,.7)'; ctx.lineWidth=1;
+  for(let i=0;i<=3;i++){const y=py(maxVal*i/3);ctx.beginPath();ctx.moveTo(22,y);ctx.lineTo(W-6,y);ctx.stroke();ctx.fillStyle='rgba(138,132,120,.6)';ctx.font='8px DM Mono,monospace';ctx.textAlign='right';ctx.fillText(Math.round(maxVal*i/3),20,y+3);}
+  ctx.beginPath();ctx.moveTo(px(0),py(data[0].inventory));data.forEach((d,i)=>ctx.lineTo(px(i),py(d.inventory)));ctx.lineTo(px(data.length-1),H);ctx.lineTo(px(0),H);ctx.closePath();
+  const ig=ctx.createLinearGradient(0,0,0,H);ig.addColorStop(0,'rgba(30,58,95,.15)');ig.addColorStop(1,'rgba(30,58,95,0)');ctx.fillStyle=ig;ctx.fill();
+  const dl=(color,key,dash=[])=>{ctx.strokeStyle=color;ctx.lineWidth=1.8;ctx.setLineDash(dash);ctx.beginPath();data.forEach((d,i)=>i?ctx.lineTo(px(i),py(d[key])):ctx.moveTo(px(i),py(d[key])));ctx.stroke();ctx.setLineDash([]);};
+  dl('#1E3A5F','inventory');dl('#2D5A3D','satisfied');dl('#7A4A1E','demand',[4,3]);
+  [['#7A4A1E','demand'],['#2D5A3D','satisfied'],['#1E3A5F','inventory']].forEach(([c,k])=>{const last=data[data.length-1];ctx.beginPath();ctx.arc(px(data.length-1),py(last[k]),3.5,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();});
+}
+
+const JOURNEY_STEPS=[
+  {id:'received',label:'Received'},{id:'inventory_check',label:'Inventory'},
+  {id:'fulfillment',label:'Fulfill'},{id:'warehouse_transfer',label:'Transfer'},
+  {id:'procurement',label:'Procure'},{id:'logistics',label:'Logistics'},
+  {id:'last_mile',label:'Last Mile'},{id:'delivered',label:'Done'},
+];
+function buildOrderBar(){const c=document.getElementById('obStages');c.innerHTML='';JOURNEY_STEPS.forEach((s,i)=>{const step=document.createElement('div');step.className='ob-step';step.id='ob-'+s.id;step.innerHTML=`<div class="ob-dot" id="obd-${s.id}">${i+1}</div><span>${s.label}</span>`;c.appendChild(step);if(i<JOURNEY_STEPS.length-1){const sep=document.createElement('div');sep.className='ob-sep';sep.id='obs-'+i;c.appendChild(sep);}});}
+function advanceOrderBar(stageId){const idx=JOURNEY_STEPS.findIndex(s=>s.id===stageId);if(idx<0)return;JOURNEY_STEPS.forEach((s,i)=>{const el=document.getElementById('ob-'+s.id),sep=document.getElementById('obs-'+(i-1));if(!el)return;if(i<idx){el.className='ob-step done';if(sep)sep.className='ob-sep done';}else if(i===idx){el.className='ob-step active';if(sep)sep.className='ob-sep active';}else{el.className='ob-step';if(sep)sep.className='ob-sep';}});}
+
+function handleSSE(ev){
+  if(!ev||!ev.type)return;
+  if(ev.type==='agent_message'){addMessageCard(ev);animateEdge(ev.from,ev.to);setNodeStatus(ev.from,'active');setNodeStatus(ev.to,'busy');if(ev.order_id)document.getElementById('activeOrder').textContent='Order: '+ev.order_id;}
+  if(ev.type==='agent_status')setNodeStatus(ev.agent,ev.status.toLowerCase());
+  if(ev.type==='all_idle'){AGENTS.forEach(a=>setNodeStatus(a.id,'idle'));document.getElementById('activeOrder').textContent='No active order';document.getElementById('decisionOverlay').classList.remove('visible');PHASE_ORDER.forEach(p=>{const el=document.getElementById('ph-'+p);if(el)el.className='ph-step';});}
+  if(ev.type==='demand_update'){demandHistory.push({step:ev.step,demand:ev.demand,satisfied:ev.satisfied,inventory:ev.inventory});if(demandHistory.length>60)demandHistory.shift();totalDemand+=ev.demand;totalSupplied+=ev.satisfied;const fill=totalDemand>0?(totalSupplied/totalDemand*100).toFixed(1)+'%':'—';document.getElementById('hdrFill').textContent=fill;document.getElementById('kpiFill').textContent=fill;drawDemandCurve();}
+  if(ev.type==='order_status'){const bar=document.getElementById('orderBar');if(!bar.classList.contains('visible')){bar.classList.add('visible');buildOrderBar();}document.getElementById('obOrderId').textContent=ev.order_id||'';document.getElementById('obStatus').textContent=ev.status||'';advanceOrderBar(ev.stage);setPhase(ev.stage);if(ev.status==='DELIVERED'){orderCount++;document.getElementById('hdrOrders').textContent=orderCount;document.getElementById('kpiOrders').textContent=orderCount;setTimeout(()=>bar.classList.remove('visible'),8000);}}
+}
+
+function connectGlobal(){if(evtSource)evtSource.close();evtSource=new EventSource(API+'/api/stream');evtSource.onmessage=e=>{try{handleSSE(JSON.parse(e.data));}catch(_){}};evtSource.onerror=()=>setTimeout(connectGlobal,3000);}
+async function pollAgents(){try{const r=await fetch(API+'/api/agents');const d=await r.json();renderAgentCards(d);}catch(_){}}
+async function pollDemandHistory(){try{const r=await fetch(API+'/api/demand-history');const d=await r.json();if(d.length>demandHistory.length){demandHistory=d;drawDemandCurve();}}catch(_){}}
+
+buildGraph();buildOrderBar();connectGlobal();renderAgentCards({});drawDemandCurve();
+setInterval(pollAgents,800);setInterval(drawDemandCurve,2000);setInterval(pollDemandHistory,5000);
+window.addEventListener('resize',()=>{buildGraph();drawDemandCurve();});
+if(orderIdParam){const os=new EventSource(API+'/api/stream/'+orderIdParam);os.onmessage=e=>{try{handleSSE(JSON.parse(e.data));}catch(_){};};}
+</script>
+</body>
+</html>
