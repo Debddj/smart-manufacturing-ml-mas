@@ -16,10 +16,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+
+# ── Load .env ──────────────────────────────────────────────────────────────────
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except ImportError:
+    pass
 
 # ── Project imports ────────────────────────────────────────────────────────────
 import sys, os
@@ -470,6 +477,247 @@ def get_products():
     return [p.to_ucp_listing() for p in catalog.all()]
 
 
+# ── Phase 3.1 — NEW v1 trigger_order endpoint ────────────────────────────────
+
+@app.post("/api/v1/trigger_order")
+async def trigger_order_v1(request: Request):
+    """
+    POST /api/v1/trigger_order
+
+    Body: {cart_items: [{sku, qty}], environment_context: str, customer_id: str}
+    Returns: {status, order_id, message}
+
+    Instantiates OrderOrchestrator and runs the full MAS pipeline in a
+    background thread. The frontend can then listen on SSE or WebSocket
+    for real-time agent events.
+    """
+    from api.order_orchestrator import OrderOrchestrator  # local import to avoid circular
+    body               = await request.json()
+    cart_items         = body.get("cart_items", body.get("items", []))
+    environment_context= body.get("environment_context", "Summer")
+    customer_id        = body.get("customer_id", "CUST-ANON")
+
+    order_id = "ORD-" + uuid.uuid4().hex[:8].upper()
+    orders_db[order_id] = {
+        "order_id":   order_id,
+        "items":      cart_items,
+        "status":     "PROCESSING",
+        "created":    datetime.now().isoformat(),
+        "context":    environment_context,
+        "customer_id":customer_id,
+    }
+
+    def _run_orchestrator():
+        orchestrator = OrderOrchestrator(
+            order_id=order_id,
+            cart_items=cart_items,
+            environment_context=environment_context,
+            customer_id=customer_id,
+            push_fn=_push,
+        )
+        result = orchestrator.execute()
+        orders_db[order_id].update(result)
+
+    t = threading.Thread(target=_run_orchestrator, daemon=True)
+    t.start()
+
+    return JSONResponse({
+        "status":   "PROCESSING",
+        "order_id": order_id,
+        "message":  f"Order {order_id} accepted — MAS pipeline started.",
+    })
+
+
+# ── Phase 3.5 — Seasonal warehouse transfer endpoint ─────────────────────────
+
+@app.post("/api/v1/seasonal_transfer")
+async def seasonal_transfer(request: Request):
+    """
+    POST /api/v1/seasonal_transfer
+
+    Body: {warehouse_context: "A" | "B", date: "YYYY-MM-DD"}
+
+    Determines the season for each warehouse based on date:
+        Warehouse A: Summer = Jan–Jul (1–7), Winter = Aug–Dec (8–12)
+        Warehouse B: Summer = Aug–Dec (8–12), Winter = Jan–Jul (1–7)
+
+    If the selected warehouse context needs stock for its season, it
+    automatically receives a transfer from the other warehouse and logs
+    it to warehouse_log.csv.
+    """
+    from automations.warehouse_logger import log_warehouse_transfer
+    import datetime as dt_module
+
+    body = await request.json()
+    wh_context = body.get("warehouse_context", "A")   # "A" or "B"
+    date_str   = body.get("date", "")
+
+    # Parse date
+    try:
+        target_date = dt_module.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return JSONResponse({"error": f"Invalid date format: {date_str}. Use YYYY-MM-DD."}, status_code=400)
+
+    month = target_date.month
+
+    # Determine season for each warehouse
+    # Wh A: Summer = months 1–7 (Jan–Jul), Winter = months 8–12 (Aug–Dec)
+    # Wh B: Summer = months 8–12 (Aug–Dec), Winter = months 1–7 (Jan–Jul)
+    def get_season_A(m: int) -> str:
+        return "Summer" if 1 <= m <= 7 else "Winter"
+
+    def get_season_B(m: int) -> str:
+        return "Summer" if 8 <= m <= 12 else "Winter"
+
+    season_A = get_season_A(month)
+    season_B = get_season_B(month)
+
+    order_id = "SEA-" + uuid.uuid4().hex[:8].upper()
+
+    transfers = []
+
+    if wh_context == "A":
+        # Warehouse A is the active context
+        needed_season = season_A
+        # Wh B has opposite season — check if B has stock for what A needs
+        # B has summer stock in Aug–Dec; A needs summer stock in Jan–Jul
+        # So if A needs summer (Jan–Jul) and B has summer (Aug–Dec), no surplus from B right now
+        # But per user spec: if date is Jan–Jul, A has less summer stock → B transfers summer to A
+        #   and B's summer is Aug–Dec so B has winter stock to spare in Jan–Jul
+        # Simplified: if A needs stock or is at start of its season → B sends surplus
+        if needed_season == "Summer":
+            from_wh  = "Warehouse B"
+            to_wh    = "Warehouse A"
+            action   = "Seasonal Transfer — Summer stock to Wh A"
+            units    = round(100.0 + (month - 1) * 5.0, 1)  # dynamic based on month proximity
+            context  = f"Wh A Summer | Date: {date_str}"
+        else:  # Winter
+            from_wh  = "Warehouse B"
+            to_wh    = "Warehouse A"
+            action   = "Seasonal Transfer — Winter stock to Wh A"
+            units    = round(80.0 + (month - 8) * 4.0, 1)
+            context  = f"Wh A Winter | Date: {date_str}"
+
+        log_warehouse_transfer(
+            agent_name="SeasonalAgent",
+            from_wh=from_wh,
+            to_wh=to_wh,
+            units=units,
+            context=context,
+            order_id=order_id,
+            action=action,
+        )
+        transfers.append({"from": from_wh, "to": to_wh, "units": units, "season": needed_season})
+
+    else:  # wh_context == "B"
+        needed_season = season_B
+        if needed_season == "Summer":
+            from_wh  = "Warehouse A"
+            to_wh    = "Warehouse B"
+            action   = "Seasonal Transfer — Summer stock to Wh B"
+            units    = round(100.0 + (month - 8) * 5.0, 1)
+            context  = f"Wh B Summer | Date: {date_str}"
+        else:  # Winter
+            from_wh  = "Warehouse A"
+            to_wh    = "Warehouse B"
+            action   = "Seasonal Transfer — Winter stock to Wh B"
+            units    = round(80.0 + (month - 1) * 4.0, 1)
+            context  = f"Wh B Winter | Date: {date_str}"
+
+        log_warehouse_transfer(
+            agent_name="SeasonalAgent",
+            from_wh=from_wh,
+            to_wh=to_wh,
+            units=units,
+            context=context,
+            order_id=order_id,
+            action=action,
+        )
+        transfers.append({"from": from_wh, "to": to_wh, "units": units, "season": needed_season})
+
+    # Broadcast seasonal event via SSE
+    _push({
+        "type":              "seasonal_transfer",
+        "order_id":          order_id,
+        "warehouse_context": wh_context,
+        "date":              date_str,
+        "month":             month,
+        "season_A":          season_A,
+        "season_B":          season_B,
+        "transfers":         transfers,
+        "ts":                datetime.now().strftime("%H:%M:%S.%f")[:-3],
+    }, None)
+
+    return JSONResponse({
+        "status":            "logged",
+        "order_id":          order_id,
+        "warehouse_context": wh_context,
+        "date":              date_str,
+        "season_A":          season_A,
+        "season_B":          season_B,
+        "transfers":         transfers,
+        "message":           f"Seasonal transfer logged to warehouse_log.csv",
+    })
+
+
+
+
+# ── WebSocket telemetry endpoint ──────────────────────────────────────────────
+
+_ws_connections: Dict[str, List[WebSocket]] = defaultdict(list)
+_ws_lock = threading.Lock()
+
+
+@app.websocket("/ws/telemetry")
+async def ws_telemetry(websocket: WebSocket):
+    """
+    WebSocket endpoint consumed by mas-ops.html.
+
+    Query params:
+        order_id — subscribe to events for a specific order (optional).
+
+    Pushes all SSE events relevant to that order (or all events if no order_id)
+    in real-time.
+    """
+    await websocket.accept()
+    order_id = websocket.query_params.get("order_id", "")
+
+    ws_q: queue.Queue = queue.Queue(maxsize=300)
+
+    # Register as a global AND per-order listener
+    with _global_lock:
+        _global_listeners.append(ws_q)
+    if order_id:
+        _order_listeners[order_id].append(ws_q)
+
+    await websocket.send_text(json.dumps({"type": "connected", "order_id": order_id}))
+
+    try:
+        while True:
+            try:
+                msg = ws_q.get_nowait()
+                await websocket.send_text(msg)
+            except queue.Empty:
+                await asyncio.sleep(0.04)
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        pass
+    finally:
+        with _global_lock:
+            try:
+                _global_listeners.remove(ws_q)
+            except ValueError:
+                pass
+        if order_id and order_id in _order_listeners:
+            try:
+                _order_listeners[order_id].remove(ws_q)
+            except ValueError:
+                pass
+
+
+# ── Legacy order endpoint (kept for backward-compat) ─────────────────────────
+
 @app.post("/api/order")
 async def place_order(request: Request):
     body = await request.json()
@@ -601,4 +849,19 @@ async def serve_dashboard():
 @app.get("/mas-ops", response_class=HTMLResponse)
 async def serve_mas_ops():
     p = BASE_DIR / "frontend" / "mas-ops.html"
+    return p.read_text(encoding="utf-8")
+
+
+# ── Phase 3.4 — /frontend/* routes (query-params preserved) ──────────────────
+
+@app.get("/frontend/mas-ops.html", response_class=HTMLResponse)
+async def serve_mas_ops_direct(request: Request):
+    """Serve mas-ops.html at /frontend/mas-ops.html (used by shop.html redirect)."""
+    p = BASE_DIR / "frontend" / "mas-ops.html"
+    return p.read_text(encoding="utf-8")
+
+
+@app.get("/frontend/shop.html", response_class=HTMLResponse)
+async def serve_shop_direct():
+    p = BASE_DIR / "frontend" / "shop.html"
     return p.read_text(encoding="utf-8")

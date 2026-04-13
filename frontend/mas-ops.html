@@ -213,6 +213,31 @@ header{height:52px;padding:0 1.5rem;border-bottom:1px solid var(--border);displa
 .ob-sep{width:12px;height:1px;background:var(--border);flex-shrink:0;}
 .ob-sep.done{background:var(--active);}
 .ob-sep.active{background:var(--ink);}
+/* Terminal / A2A Log */
+.terminal-section{grid-column:1;grid-row:2;display:flex;flex-direction:column;overflow:hidden;}
+.terminal-content{flex:1;overflow-y:auto;background:#1a0f1a;padding:.5rem .75rem;font-family:'Courier New',monospace;}
+.terminal-content::-webkit-scrollbar{width:3px;}
+.terminal-content::-webkit-scrollbar-thumb{background:rgba(196,145,95,.4);border-radius:2px;}
+.terminal-entry{padding:.22rem 0;border-bottom:1px solid rgba(232,213,196,.07);font-size:.67rem;line-height:1.4;color:#b8a898;animation:termIn .18s ease;}
+@keyframes termIn{from{opacity:0;padding-left:6px}to{opacity:1;padding-left:0}}
+.terminal-entry .te-ts{color:rgba(196,145,95,.7);margin-right:.4rem;}
+.terminal-entry .te-from{color:#6B8E7F;font-weight:700;}
+.terminal-entry .te-to{color:#6B7A8E;font-weight:700;}
+.terminal-entry .te-type{color:#C4915F;}
+.terminal-entry .te-payload{color:rgba(255,255,255,.5);}
+.terminal-entry.warn-entry{color:#C4915F;}
+.terminal-entry.alert-entry{color:#B85C5C;}
+/* Flashing agent node */
+@keyframes nodePulseBlue{0%,100%{filter:drop-shadow(0 0 4px rgba(100,160,255,.3))}50%{filter:drop-shadow(0 0 18px rgba(100,160,255,.85));}}
+.agent-node.flashing .node-circle{stroke:#5DA3FA!important;animation:nodePulseBlue .5s infinite!important;}
+/* Metadata bar */
+.meta-bar{display:flex;align-items:center;gap:1rem;padding:.35rem 1.1rem;background:var(--s1);border-bottom:1px solid var(--border);font-size:.63rem;font-family:var(--mono);color:var(--muted2);flex-shrink:0;}
+.meta-item{display:flex;align-items:center;gap:.3rem;}
+.meta-key{color:var(--muted2);}
+.meta-val{color:var(--ink);font-weight:600;}
+.meta-ctx-badge{padding:.1rem .45rem;border-radius:10px;font-weight:700;font-size:.6rem;}
+.ctx-summer{background:rgba(196,145,95,.15);color:#C4915F;border:1px solid rgba(196,145,95,.3);}
+.ctx-winter{background:rgba(107,142,255,.12);color:#5DA3FA;border:1px solid rgba(107,142,255,.2);}
 </style>
 </head>
 <body>
@@ -231,6 +256,26 @@ header{height:52px;padding:0 1.5rem;border-bottom:1px solid var(--border);displa
     <a href="/shop" class="shop-link">Shop</a>
   </div>
 </header>
+
+<!-- Metadata bar -->
+<div class="meta-bar" id="metaBar">
+  <div class="meta-item">
+    <span class="meta-key">Order:</span>
+    <span class="meta-val" id="metaOrderId">—</span>
+  </div>
+  <div class="meta-item">
+    <span class="meta-key">Context:</span>
+    <span id="metaCtxBadge" class="meta-ctx-badge ctx-summer">Summer</span>
+  </div>
+  <div class="meta-item">
+    <span class="meta-key">Messages:</span>
+    <span class="meta-val" id="metaMsgCount">0</span>
+  </div>
+  <div class="meta-item" style="margin-left:auto;">
+    <span class="meta-key">Stream:</span>
+    <span class="meta-val" id="metaStream" style="color:var(--muted2)">connecting…</span>
+  </div>
+</div>
 
 <div class="grid">
   <div class="panel network-panel">
@@ -273,16 +318,14 @@ header{height:52px;padding:0 1.5rem;border-bottom:1px solid var(--border);displa
   </div>
 
   <div class="bottom-strip">
-    <div class="panel demand-panel">
+    <div class="panel terminal-section demand-panel">
       <div class="panel-header">
-        <div class="ph-title warn-c">Demand vs Supply</div>
+        <div class="ph-title warn-c">A2A Terminal Log</div>
         <div style="font-size:.58rem;color:var(--muted2);display:flex;gap:.55rem;">
-          <span style="display:flex;align-items:center;gap:.2rem;"><span style="width:12px;height:2px;background:var(--warn);display:inline-block;border-radius:1px;"></span>Demand</span>
-          <span style="display:flex;align-items:center;gap:.2rem;"><span style="width:12px;height:2px;background:var(--active);display:inline-block;border-radius:1px;"></span>Supplied</span>
-          <span style="display:flex;align-items:center;gap:.2rem;"><span style="width:12px;height:2px;background:var(--busy);display:inline-block;border-radius:1px;"></span>Inventory</span>
+          <span id="termCount" style="font-family:var(--mono)">0 events</span>
         </div>
       </div>
-      <canvas id="demandCanvas"></canvas>
+      <div class="terminal-content" id="terminalLog"></div>
     </div>
     <div class="panel status-panel logs-panel">
       <div class="kpi-row">
@@ -781,22 +824,134 @@ function connectGlobal(){if(evtSource)evtSource.close();evtSource=new EventSourc
 async function pollAgents(){try{const r=await fetch(API+'/api/agents');const d=await r.json();renderAgentCards(d);}catch(_){}}
 async function pollDemandHistory(){try{const r=await fetch(API+'/api/demand-history');const d=await r.json();if(d.length>demandHistory.length){demandHistory=d;drawDemandCurve();}}catch(_){}}
 
-initMockDemandData();
-buildGraph();buildOrderBar();connectGlobal();renderAgentCards({});drawDemandCurve();
-// Add initial mock agent logs after DOM is ready
-setTimeout(()=>{
-  addAgentLog(0,'INFO','System','system_start','System initialized','Multi-agent supply chain system started successfully',{agents:10,status:'ready'});
-  addAgentLog(0,'INFO','OrderManagementAgent','agent_ready','Agent ready','Order Management Agent initialized and ready to process orders',{});
-  addAgentLog(0,'INFO','InventoryAgent','agent_ready','Agent ready','Inventory Agent monitoring stock levels across warehouses',{warehouses:['A','B','C']});
-  addAgentLog(0,'INFO','ProcurementAgent','agent_ready','Agent ready','Procurement Agent ready to source materials',{});
-  addAgentLog(1,'ACTION','SupplierAgent','material_delivery','Delivered 120 units','Supplier delivered raw materials to warehouse',{quantity:120,warehouse:'A'});
-  addAgentLog(2,'WARNING','WarehouseAgent','low_stock','Inventory below threshold','Warehouse A inventory dropped below safety stock level',{current:45,threshold:50});
-  addAgentLog(3,'ALERT','DisruptionEngine','disruption_detected','Supply chain disruption','Supplier delay detected - estimated 2-day impact',{type:'supplier_delay',severity:'high',duration:2});
-  console.log('Agent logs initialized:',agentLogs.length,'logs');
-},100);
-setInterval(pollAgents,800);setInterval(drawDemandCurve,2000);setInterval(pollDemandHistory,5000);
-window.addEventListener('resize',()=>{buildGraph();drawDemandCurve();});
-if(orderIdParam){const os=new EventSource(API+'/api/stream/'+orderIdParam);os.onmessage=e=>{try{handleSSE(JSON.parse(e.data));}catch(_){};};}
+// ── Phase 3.4 additions ─────────────────────────────────────────────────────────────────────
+
+// Stub drawDemandCurve — canvas was replaced by terminal log
+window.drawDemandCurve = function() {};
+
+// Null-guard renderAgentCards (agentCards div may not exist in redesigned layout)
+const _origRenderAgentCards = renderAgentCards;
+window.renderAgentCards = function(states) {
+  if (!document.getElementById('agentCards')) return;
+  _origRenderAgentCards(states);
+};
+
+// Read URL params (set by shop.html redirect)
+const _params = new URLSearchParams(window.location.search);
+const _orderIdFromUrl = _params.get('order_id') || orderIdParam || '';
+const _contextFromUrl = _params.get('context') || 'Summer';
+let   _msgCounter = 0;
+
+// Populate metadata bar
+if (_orderIdFromUrl) {
+  document.getElementById('metaOrderId').textContent = _orderIdFromUrl;
+  document.getElementById('activeOrder').textContent = 'Order: ' + _orderIdFromUrl;
+}
+const ctxBadge = document.getElementById('metaCtxBadge');
+ctxBadge.textContent = _contextFromUrl;
+ctxBadge.className = 'meta-ctx-badge ' + (_contextFromUrl === 'Winter' ? 'ctx-winter' : 'ctx-summer');
+
+// ── appendToTerminal ────────────────────────────────────────────────────────────────────────
+function appendToTerminal(msg) {
+  const log = document.getElementById('terminalLog');
+  if (!log) return;
+  _msgCounter++;
+  document.getElementById('metaMsgCount').textContent = _msgCounter;
+  document.getElementById('termCount').textContent = _msgCounter + ' events';
+
+  const entry = document.createElement('div');
+  const priorityClass = msg.priority === 'ALERT' ? 'alert-entry'
+                      : msg.priority === 'WARNING' ? 'warn-entry' : '';
+  entry.className = 'terminal-entry ' + priorityClass;
+
+  const ts      = msg.ts || new Date().toTimeString().slice(0,8);
+  const from    = msg.from || msg.agent || 'SYS';
+  const to      = msg.to   || '';
+  const type    = msg.msg_type || msg.type || '';
+  const payload = msg.payload ? JSON.stringify(msg.payload).slice(0, 110) : '';
+
+  entry.innerHTML =
+    `<span class="te-ts">[${ts}]</span>` +
+    `<span class="te-from">${from}</span>` +
+    (to ? `<span style="color:#888"> → </span><span class="te-to">${to}</span>` : '') +
+    (type ? ` <span class="te-type">[${type}]</span>` : '') +
+    (payload ? ` <span class="te-payload">${payload}</span>` : '');
+
+  log.appendChild(entry);
+  while (log.children.length > 200) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── flashAgentNode ──────────────────────────────────────────────────────────────────────────
+function flashAgentNode(agentName) {
+  const node = document.getElementById('node-' + agentName);
+  if (!node) return;
+  node.classList.add('flashing');
+  setTimeout(() => node.classList.remove('flashing'), 1000);
+}
+
+// ── handleA2AMessage — unified WebSocket + SSE handler ─────────────────────────────────────
+function handleA2AMessage(msg) {
+  appendToTerminal(msg);
+  handleSSE(msg);
+  if (msg.from)  flashAgentNode(msg.from);
+  if (msg.to)    flashAgentNode(msg.to);
+  if (msg.agent) flashAgentNode(msg.agent);
+}
+
+// ── WebSocket with SSE fallback ─────────────────────────────────────────────────────────────
+let _wsActive = false;
+
+function connectWebSocket() {
+  const wsOrderParam = _orderIdFromUrl ? '?order_id=' + _orderIdFromUrl : '';
+  const wsUrl = 'ws://' + window.location.host + '/ws/telemetry' + wsOrderParam;
+  try {
+    const ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      _wsActive = true;
+      const el = document.getElementById('metaStream');
+      if (el) { el.textContent = 'WebSocket ✓'; el.style.color = '#6B8E7F'; }
+    };
+    ws.onmessage = e => { try { handleA2AMessage(JSON.parse(e.data)); } catch(_) {} };
+    ws.onerror   = () => { if (!_wsActive) connectSSEFallback(); };
+    ws.onclose   = () => {
+      const el = document.getElementById('metaStream');
+      if (el) { el.textContent = 'reconnecting…'; el.style.color = 'var(--muted2)'; }
+      if (_wsActive) setTimeout(connectWebSocket, 3000);
+    };
+  } catch(err) {
+    connectSSEFallback();
+  }
+}
+
+function connectSSEFallback() {
+  const el = document.getElementById('metaStream');
+  if (el) el.textContent = 'SSE';
+  // Use existing connectGlobal (not redefined — just called)
+  connectGlobal();
+  if (_orderIdFromUrl) {
+    const os = new EventSource(API + '/api/stream/' + _orderIdFromUrl);
+    os.onmessage = e => { try { handleA2AMessage(JSON.parse(e.data)); } catch(_) {} };
+  }
+}
+
+// ── Startup ─────────────────────────────────────────────────────────────────────────────────
+buildGraph(); buildOrderBar(); renderAgentCards({});
+connectWebSocket();
+
+setTimeout(() => {
+  addAgentLog(0,'INFO','System','system_start','System initialized','MAS Ops Center online',{agents:10,status:'ready'});
+  addAgentLog(0,'INFO','OrderManagementAgent','agent_ready','Agent ready','Order Management Agent ready',{});
+  addAgentLog(0,'INFO','InventoryAgent','agent_ready','Agent ready','Inventory Agent monitoring warehouses',{});
+  appendToTerminal({ts: new Date().toTimeString().slice(0,8), from:'System', type:'BOOT',
+    payload:{status:'MAS Ops Center Online', context: _contextFromUrl}});
+}, 150);
+
+setInterval(pollAgents, 800);
+setInterval(pollDemandHistory, 5000);
+window.addEventListener('resize', () => buildGraph());
+
+
 </script>
 </body>
 </html>

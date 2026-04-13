@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Supply Chain Shop — Smart Manufacturing MAS</title>
+<meta name="description" content="Smart Manufacturing MAS customer shop — order industrial components with real-time supply chain agent processing."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -13,6 +14,8 @@
   --gold:#C4915F;--gold-glow:rgba(196,145,95,.15);--gold2:#A67A4A;
   --sage:#6B8E7F;--sage-dim:rgba(107,142,127,.15);
   --slate:#6B7A8E;--red:#B85C5C;--red-dim:rgba(184,92,92,.15);
+  --summer:#D4825A;--summer-dim:rgba(212,130,90,.12);
+  --winter:#5A82B4;--winter-dim:rgba(90,130,180,.12);
   --cream:#FFF3E6;--card:#FFFFFF;--mono:'Inter',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -28,7 +31,7 @@ header{padding:.9rem 2rem;border-bottom:1px solid var(--border);display:flex;ali
 .dash-btn:hover{border-color:var(--ink);color:var(--ink);}
 .cart-badge{padding:.4rem .95rem;background:var(--ink);border-radius:7px;cursor:pointer;font-size:.78rem;font-weight:700;color:var(--surface2);transition:all .2s;letter-spacing:.02em;}
 .cart-badge:hover{background:var(--ink2);}
-main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px);}
+main{display:grid;grid-template-columns:1fr 390px;gap:0;height:calc(100vh - 63px);}
 .products-panel{padding:1.75rem 2rem;overflow-y:auto;border-right:1px solid var(--border);background:var(--bg);}
 .products-panel::-webkit-scrollbar{width:4px;}
 .products-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -59,8 +62,8 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
 .cart-panel{display:flex;flex-direction:column;padding:0;overflow-y:auto;background:var(--surface2);border-left:1px solid var(--border);}
 .cart-panel::-webkit-scrollbar{width:3px;}
 .cart-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.cart-header{padding:1.5rem 1.75rem 1rem;border-bottom:1px solid var(--border);background:var(--surface2);}
-.cart-items{flex:1;overflow-y:auto;padding:1rem 1.75rem;}
+.cart-header{padding:1.2rem 1.75rem .85rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+.cart-items{flex:1;overflow-y:auto;padding:.85rem 1.75rem;}
 .cart-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.75rem;transition:all .2s;}
 .cart-item:hover{border-color:var(--ink2);box-shadow:0 2px 8px rgba(0,0,0,.04);}
 .cart-item-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;}
@@ -75,16 +78,16 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
 .qty-btn{width:26px;height:26px;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .18s;font-weight:600;}
 .qty-btn:hover{border-color:var(--ink);background:var(--ink);color:var(--surface2);}
 .qty-val{font-size:.85rem;font-weight:600;min-width:24px;text-align:center;color:var(--ink);}
-.cart-footer{margin-top:auto;border-top:2px solid var(--border);padding:1.5rem 1.75rem;background:var(--surface);}
-.summary-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;}
-.summary-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);padding:.35rem 0;gap:.5rem;}
+.cart-footer{margin-top:auto;border-top:2px solid var(--border);padding:1.1rem 1.75rem 1.5rem;background:var(--surface);}
+.summary-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.9rem;margin-bottom:.75rem;}
+.summary-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);padding:.3rem 0;gap:.5rem;}
 .summary-row-label{font-weight:500;}
 .summary-row-value{font-weight:600;color:var(--ink2);}
-.summary-total{display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;padding:.75rem 0;border-top:2px solid var(--border);margin-top:.5rem;color:var(--ink);gap:.5rem;}
-.checkout-btn{width:100%;padding:1rem;border:none;border-radius:8px;background:var(--ink);color:var(--surface2);font-weight:700;font-size:.92rem;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:.02em;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.summary-total{display:flex;justify-content:space-between;font-size:1.05rem;font-weight:700;padding:.7rem 0;border-top:2px solid var(--border);margin-top:.4rem;color:var(--ink);gap:.5rem;}
+.checkout-btn{width:100%;padding:.95rem;border:none;border-radius:8px;background:var(--ink);color:var(--surface2);font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:.02em;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 .checkout-btn:hover{background:var(--ink2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2);}
 .checkout-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
-.status-box{margin-top:1rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:none;}
+.status-box{margin-top:.85rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:none;}
 .status-box.visible{display:block;animation:slideIn .3s ease;}
 @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .status-order-id{font-size:.62rem;color:var(--muted);font-family:var(--mono);margin-bottom:.38rem;}
@@ -98,8 +101,37 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
 .tl-step.done .tl-dot{border-color:var(--sage);background:var(--sage-dim);color:var(--sage);}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(28,28,28,.25)}50%{box-shadow:0 0 0 4px rgba(28,28,28,0)}}
 .tl-detail{color:var(--muted);font-size:.65rem;margin-top:.1rem;}
-.toast{position:fixed;bottom:2rem;right:2rem;padding:.65rem 1.1rem;background:var(--ink);border-radius:8px;color:var(--surface2);font-size:.78rem;font-weight:600;transform:translateY(100px);opacity:0;transition:all .3s;z-index:999;}
+.toast{position:fixed;bottom:2rem;right:2rem;padding:.65rem 1.1rem;background:var(--ink);border-radius:8px;color:var(--surface2);font-size:.78rem;font-weight:600;transform:translateY(100px);opacity:0;transition:all .3s;z-index:999;max-width:320px;}
 .toast.show{transform:translateY(0);opacity:1;}
+
+/* ── Warehouse + Context Selector ────────────────────────────────────── */
+.wh-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.65rem;}
+.wh-section-title{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.55rem;display:flex;align-items:center;gap:.4rem;}
+.wh-section-title::before{content:'';width:3px;height:10px;background:var(--gold);border-radius:2px;}
+.wh-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;}
+.wh-select{width:100%;padding:.45rem .65rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B4A5E' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .65rem center;transition:border-color .2s;outline:none;}
+.wh-select:focus{border-color:var(--ink);}
+.wh-lbl{font-size:.62rem;font-weight:600;color:var(--muted);margin-bottom:.2rem;display:block;}
+.date-input{width:100%;padding:.45rem .65rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:.78rem;cursor:pointer;outline:none;transition:border-color .2s;}
+.date-input:focus{border-color:var(--ink);}
+
+/* Season badges */
+.season-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.5rem;}
+.season-badge{border-radius:6px;padding:.42rem .65rem;font-size:.66rem;font-weight:600;text-align:center;transition:all .3s;}
+.season-badge.summer{background:var(--summer-dim);color:var(--summer);border:1px solid rgba(212,130,90,.3);}
+.season-badge.winter{background:var(--winter-dim);color:var(--winter);border:1px solid rgba(90,130,180,.3);}
+.season-badge-label{font-size:.58rem;font-weight:500;opacity:.75;display:block;margin-bottom:.1rem;}
+
+/* Seasonal transfer panel */
+.seasonal-transfer-btn{width:100%;margin-top:.55rem;padding:.55rem;border:1.5px solid var(--gold);border-radius:6px;background:var(--gold-glow);color:var(--gold2);font-weight:700;font-size:.74rem;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:.02em;}
+.seasonal-transfer-btn:hover{background:var(--gold);color:white;border-color:var(--gold);}
+.seasonal-transfer-btn:disabled{opacity:.4;cursor:not-allowed;}
+.transfer-result{margin-top:.5rem;padding:.55rem .75rem;border-radius:6px;font-size:.68rem;display:none;animation:slideIn .3s ease;}
+.transfer-result.success{background:var(--sage-dim);border:1px solid rgba(107,142,127,.3);color:var(--sage);display:block;}
+.transfer-result.error{background:var(--red-dim);border:1px solid rgba(184,92,92,.3);color:var(--red);display:block;}
+
+.context-hint{font-size:.6rem;color:var(--muted2);margin-top:.3rem;font-style:italic;}
+.divider{height:1px;background:var(--border);margin:.5rem 0;}
 </style>
 </head>
 <body>
@@ -153,6 +185,55 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
           <span id="cartTotal">₹0.00</span>
         </div>
       </div>
+
+      <!-- ── Warehouse & Season Control ────────────────────────────────── -->
+      <div class="wh-section">
+        <div class="wh-section-title">Warehouse &amp; Seasonal Control</div>
+
+        <div class="wh-row">
+          <div>
+            <label class="wh-lbl" for="wh-context-select">Warehouse Context</label>
+            <select id="wh-context-select" class="wh-select" onchange="onWarehouseChange()">
+              <option value="A">Warehouse A</option>
+              <option value="B">Warehouse B</option>
+            </select>
+          </div>
+          <div>
+            <label class="wh-lbl" for="simulation-date">Simulation Date</label>
+            <input type="date" id="simulation-date" class="date-input" value="2026-03-12" onchange="onDateChange()"/>
+          </div>
+        </div>
+
+        <!-- Season status display -->
+        <div class="season-grid" id="seasonGrid">
+          <div class="season-badge summer" id="badge-A">
+            <span class="season-badge-label">Warehouse A</span>
+            <span id="season-A-text">☀️ Summer</span>
+          </div>
+          <div class="season-badge winter" id="badge-B">
+            <span class="season-badge-label">Warehouse B</span>
+            <span id="season-B-text">❄️ Winter</span>
+          </div>
+        </div>
+
+        <div class="context-hint" id="transfer-hint" style="margin-top:.4rem;"></div>
+
+        <button id="seasonal-xfer-btn" class="seasonal-transfer-btn" onclick="triggerSeasonalTransfer()">
+          🔄 Log Seasonal Transfer to CSV
+        </button>
+        <div class="transfer-result" id="transfer-result"></div>
+
+        <div class="divider"></div>
+
+        <!-- Order routing context (derived from warehouse selection) -->
+        <label class="wh-lbl" for="environment-context">Order Routing Context</label>
+        <select id="environment-context" class="wh-select" style="margin-top:.2rem;">
+          <option value="Summer" selected>Summer (Default Routing — 60% from Wh B)</option>
+          <option value="Winter">Winter (Cold Storage Priority — 90% from Wh B)</option>
+        </select>
+        <div class="context-hint">Affects inventory routing split between warehouses.</div>
+      </div>
+
       <button class="checkout-btn" id="orderBtn" onclick="placeOrder()">Proceed to Checkout</button>
       <div class="status-box" id="statusBox">
         <div class="status-order-id" id="statusOrderId"></div>
@@ -169,6 +250,110 @@ main{display:grid;grid-template-columns:1fr 370px;gap:0;height:calc(100vh - 63px
 const API = '';
 let cart = {}, products = {}, currentOrderId = null, evtSource = null;
 
+// ── Season rules ─────────────────────────────────────────────────────────────
+// Wh A: Summer = Jan(1)–Jul(7), Winter = Aug(8)–Dec(12)
+// Wh B: Summer = Aug(8)–Dec(12), Winter = Jan(1)–Jul(7)
+function getSeasonA(month) { return month >= 1 && month <= 7 ? 'Summer' : 'Winter'; }
+function getSeasonB(month) { return month >= 8 && month <= 12 ? 'Summer' : 'Winter'; }
+
+function getSeasonEmoji(s) { return s === 'Summer' ? '☀️' : '❄️'; }
+
+function updateSeasonDisplay() {
+  const dateVal = document.getElementById('simulation-date').value;
+  const whCtx   = document.getElementById('wh-context-select').value;
+  if (!dateVal) return;
+
+  const d = new Date(dateVal);
+  const month = d.getMonth() + 1; // 1-indexed
+
+  const sA = getSeasonA(month);
+  const sB = getSeasonB(month);
+
+  // Update badges
+  const badgeA = document.getElementById('badge-A');
+  const badgeB = document.getElementById('badge-B');
+  const textA  = document.getElementById('season-A-text');
+  const textB  = document.getElementById('season-B-text');
+
+  badgeA.className = 'season-badge ' + sA.toLowerCase();
+  badgeB.className = 'season-badge ' + sB.toLowerCase();
+  textA.textContent = getSeasonEmoji(sA) + ' ' + sA;
+  textB.textContent = getSeasonEmoji(sB) + ' ' + sB;
+
+  // Hint about transfer direction
+  const hint = document.getElementById('transfer-hint');
+  const resultEl = document.getElementById('transfer-result');
+  resultEl.className = 'transfer-result'; // hide previous result
+
+  if (whCtx === 'A') {
+    const needsSeason = sA;
+    // Wh B has opposite season stock
+    if (needsSeason === 'Summer') {
+      hint.textContent = `📦 Wh A needs ${needsSeason} stock → Will receive transfer from Warehouse B`;
+    } else {
+      hint.textContent = `🧊 Wh A needs ${needsSeason} stock → Will receive transfer from Warehouse B`;
+    }
+  } else {
+    const needsSeason = sB;
+    if (needsSeason === 'Summer') {
+      hint.textContent = `📦 Wh B needs ${needsSeason} stock → Will receive transfer from Warehouse A`;
+    } else {
+      hint.textContent = `🧊 Wh B needs ${needsSeason} stock → Will receive transfer from Warehouse A`;
+    }
+  }
+
+  // Auto-update the order routing context dropdown to match active warehouse's season
+  const activeSeason = whCtx === 'A' ? sA : sB;
+  document.getElementById('environment-context').value = activeSeason;
+}
+
+function onWarehouseChange() { updateSeasonDisplay(); }
+function onDateChange()      { updateSeasonDisplay(); }
+
+async function triggerSeasonalTransfer() {
+  const btn     = document.getElementById('seasonal-xfer-btn');
+  const resultEl= document.getElementById('transfer-result');
+  const dateVal = document.getElementById('simulation-date').value;
+  const whCtx   = document.getElementById('wh-context-select').value;
+
+  if (!dateVal) {
+    showToast('Please select a simulation date first.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Logging transfer…';
+  resultEl.className = 'transfer-result';
+
+  try {
+    const r = await fetch(API + '/api/v1/seasonal_transfer', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ warehouse_context: whCtx, date: dateVal })
+    });
+    const data = await r.json();
+
+    if (!r.ok) throw new Error(data.error || 'API error');
+
+    const t = data.transfers?.[0];
+    const msg = t
+      ? `✅ Logged: ${t.from} → ${t.to} | ${t.units} units | ${t.season} | ID: ${data.order_id}`
+      : `✅ Transfer logged: ${data.order_id}`;
+
+    resultEl.textContent = msg;
+    resultEl.className = 'transfer-result success';
+    showToast('Seasonal transfer logged to warehouse_log.csv ✓');
+  } catch(e) {
+    resultEl.textContent = `⚠️ ${e.message}`;
+    resultEl.className = 'transfer-result error';
+    showToast('Transfer logging failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 Log Seasonal Transfer to CSV';
+  }
+}
+
+// ── Product catalogue ──────────────────────────────────────────────────────────
 const DEMO_PRODUCTS = [
   {id:'RM-001',name:'Cold-Rolled Steel Coils',category:'Raw Materials',description:'High-strength HSLA steel coils, 1.5mm gauge. For stamping and roll-forming operations.',price:{amount:2840},inventory:{available:120},sku:'CRSC-1500',lead:'5–7 days'},
   {id:'RM-002',name:'6061-T6 Aluminium Sheet',category:'Raw Materials',description:'Aerospace-grade aluminium alloy, 3mm thickness. Excellent machinability and corrosion resistance.',price:{amount:1250},inventory:{available:85},sku:'AL61-T6',lead:'3–5 days'},
@@ -278,36 +463,36 @@ function addToCart(sku) {
   renderProducts(activeCat === 'All' ? prods : prods.filter(p => p.category === activeCat));
 }
 
-function changeQty(sku, delta) { 
-  cart[sku] = (cart[sku] || 0) + delta; 
-  if (cart[sku] <= 0) delete cart[sku]; 
-  updateCart(); 
+function changeQty(sku, delta) {
+  cart[sku] = (cart[sku] || 0) + delta;
+  if (cart[sku] <= 0) delete cart[sku];
+  updateCart();
 }
 
-function removeItem(sku) { 
-  delete cart[sku]; 
-  updateCart(); 
+function removeItem(sku) {
+  delete cart[sku];
+  updateCart();
 }
 
 function updateCart() {
   const skus = Object.keys(cart);
   document.getElementById('cartCount').textContent = skus.length;
   const empty = document.getElementById('cartEmpty'), items = document.getElementById('cartItems'), footer = document.getElementById('cartFooter');
-  if (skus.length === 0) { 
-    empty.style.display = 'flex'; 
-    items.style.display = 'none'; 
-    footer.style.display = 'none'; 
-    return; 
+  if (skus.length === 0) {
+    empty.style.display = 'flex';
+    items.style.display = 'none';
+    footer.style.display = 'none';
+    return;
   }
-  empty.style.display = 'none'; 
-  items.style.display = 'block'; 
+  empty.style.display = 'none';
+  items.style.display = 'block';
   footer.style.display = 'block';
-  let total = 0, units = 0; 
+  let total = 0, units = 0;
   items.innerHTML = '';
   skus.forEach(sku => {
     const p = products[sku], qty = cart[sku], price = p?.price?.amount || 0;
     total += price * qty; units += qty;
-    const row = document.createElement('div'); 
+    const row = document.createElement('div');
     row.className = 'cart-item';
     row.innerHTML = `
       <div class="cart-item-header">
@@ -334,35 +519,48 @@ function updateCart() {
 
 async function placeOrder() {
   if (Object.keys(cart).length === 0) return;
-  const btn = document.getElementById('orderBtn'); 
-  btn.disabled = true; 
+  const btn = document.getElementById('orderBtn');
+  btn.disabled = true;
   btn.textContent = 'Processing…';
-  const items = Object.entries(cart).map(([sku, qty]) => ({sku, qty}));
+
+  // Collect cart items with quantity
+  const cartItems = Object.entries(cart).map(([sku, qty]) => ({sku, qty}));
+  const environmentContext = document.getElementById('environment-context').value;
+  const customerId = 'CUST-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+  const payload = { cart_items: cartItems, environment_context: environmentContext, customer_id: customerId };
+
   try {
-    const r = await fetch(API + '/api/order', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({items})});
-    const data = await r.json(); 
+    const r = await fetch(API + '/api/v1/trigger_order', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
     currentOrderId = data.order_id;
     document.getElementById('statusBox').classList.add('visible');
-    document.getElementById('statusOrderId').textContent = 'Order: ' + currentOrderId;
+    document.getElementById('statusOrderId').textContent = 'Order: ' + currentOrderId + ' | Items: ' + cartItems.length;
     buildTimeline();
-    window.open('/mas-ops?order=' + currentOrderId, '_blank');
+    const opsUrl = '/frontend/mas-ops.html?order_id=' + currentOrderId + '&context=' + encodeURIComponent(environmentContext);
+    window.open(opsUrl, '_blank');
     if (evtSource) evtSource.close();
     evtSource = new EventSource(API + '/api/stream/' + currentOrderId);
     evtSource.onmessage = e => handleEvent(JSON.parse(e.data));
     btn.textContent = 'Agents Working…';
-  } catch(e) { 
-    btn.disabled = false; 
-    btn.textContent = 'Proceed to Checkout'; 
-    showToast('Backend offline — demo mode'); 
+    showToast('📨 Procurement + fulfillment emails will be sent on completion.');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Proceed to Checkout';
+    alert('Order failed: ' + e.message + '\nCheck backend is running on :8000');
   }
 }
 
 function buildTimeline() {
-  const tl = document.getElementById('timeline'); 
+  const tl = document.getElementById('timeline');
   tl.innerHTML = '';
   STAGES.forEach(s => {
-    const row = document.createElement('div'); 
-    row.className = 'tl-step'; 
+    const row = document.createElement('div');
+    row.className = 'tl-step';
     row.id = 'tl-' + s.id;
     row.innerHTML = `<div class="tl-dot" id="dot-${s.id}"></div><div><div>${s.icon} ${s.label}</div><div class="tl-detail" id="detail-${s.id}"></div></div>`;
     tl.appendChild(row);
@@ -375,50 +573,51 @@ function handleEvent(ev) {
     STAGES.forEach(s => {
       const el = document.getElementById('tl-' + s.id), dot = document.getElementById('dot-' + s.id);
       if (!el) return;
-      if (s.id === ev.stage) { 
-        el.classList.remove('done'); 
-        el.classList.add('active'); 
-        dot.textContent = ''; 
-        document.getElementById('detail-' + s.id).textContent = ev.detail || ''; 
-        found = true; 
-      }
-      else if (!found) { 
-        el.classList.remove('active'); 
-        el.classList.add('done'); 
-        dot.textContent = '✓'; 
+      if (s.id === ev.stage) {
+        el.classList.remove('done');
+        el.classList.add('active');
+        dot.textContent = '';
+        document.getElementById('detail-' + s.id).textContent = ev.detail || '';
+        found = true;
+      } else if (!found) {
+        el.classList.remove('active');
+        el.classList.add('done');
+        dot.textContent = '✓';
       }
     });
     if (ev.status === 'DELIVERED') {
-      STAGES.forEach(s => { 
-        const el = document.getElementById('tl-' + s.id), dot = document.getElementById('dot-' + s.id); 
-        if (!el) return; 
-        el.classList.remove('active'); 
-        el.classList.add('done'); 
-        dot.textContent = '✓'; 
+      STAGES.forEach(s => {
+        const el = document.getElementById('tl-' + s.id), dot = document.getElementById('dot-' + s.id);
+        if (!el) return;
+        el.classList.remove('active');
+        el.classList.add('done');
+        dot.textContent = '✓';
       });
-      document.getElementById('orderBtn').textContent = 'Order Delivered!';
+      document.getElementById('orderBtn').textContent = 'Order Delivered! ✅';
       document.getElementById('orderBtn').disabled = false;
-      cart = {}; 
-      updateCart(); 
-      showToast('Order delivered! Supply chain complete.'); 
+      cart = {};
+      updateCart();
+      showToast('✅ Order delivered! Check your email for invoice + procurement contract.');
       if (evtSource) evtSource.close();
     }
   }
 }
 
-function scrollToCart() { 
-  document.getElementById('cartPanel').scrollIntoView({behavior:'smooth'}); 
+function scrollToCart() {
+  document.getElementById('cartPanel').scrollIntoView({behavior:'smooth'});
 }
 
-function showToast(msg) { 
-  const t = document.getElementById('toast'); 
-  t.textContent = msg; 
-  t.classList.add('show'); 
-  setTimeout(() => t.classList.remove('show'), 2800); 
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-loadProducts(); 
+// ── Init ─────────────────────────────────────────────────────────────────────
+loadProducts();
 setInterval(loadProducts, 30000);
+updateSeasonDisplay(); // show initial season state
 </script>
 </body>
 </html>
