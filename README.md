@@ -39,6 +39,7 @@
 - [Machine Learning Pipeline](#machine-learning-pipeline)
 - [Reinforcement Learning](#reinforcement-learning)
 - [Disruption Engine](#disruption-engine)
+- [Automations](#automations)
 - [Interactive Dashboard](#interactive-dashboard)
 - [Visualisations](#visualisations)
 - [Project Structure](#project-structure)
@@ -293,6 +294,19 @@ flowchart LR
 
 ---
 
+## Automations
+
+To simulate a fully digitalized, real-world supply chain, six core automated event triggers execute in real-time alongside the supply chain agents:
+
+1. **Desktop Notifications:** Real-time OS-level alerts are triggered the moment an order is dispatched via the local OS notification centre.
+2. **Supplier Email Alerts:** Automated emails dispatch procurement smart-contracts to suppliers whenever the factory is low on inventory.
+3. **Customer Confirmation Emails:** Automatically emails fulfillment confirmations to customers immediately after dispatch. *(Note: To avoid external email API service costs, this is currently restricted to the same local email address).*
+4. **PDF Invoice Generation:** Produces cryptographically-hashed PDF transaction summaries acting as procurement smart-contracts attached directly to the supplier email.
+5. **Telegram Bot Dispatch Alerts:** Leverages the Telegram Bot API (`@BotFather`) to push logistic dispatch updates containing real-time status and destination directly to your mobile device.
+6. **Warehouse Activity Logging:** Automatically generates an ongoing, structured append-only history of warehouse events to `warehouse_log.csv` each time the simulation runs.
+
+---
+
 ## Interactive Dashboard
 
 The system generates a **fully self-contained HTML dashboard** — no server required, no dependencies beyond a browser, works completely offline.
@@ -345,6 +359,12 @@ smart-manufacturing-ml-mas/
 │   ├── logistics_agent.py        # Transport ceiling · capacity: 300 units
 │   ├── supplier_agent.py         # Stochastic supply · batches: [80, 120, 180]
 │   └── warehouse_agent.py        # Greedy demand dispatcher · min(inventory, demand)
+│
+├── 📂 automations/
+│   ├── email_sender.py           # Email (supplier/customer) + PDF invoice generation
+│   ├── notifications.py          # OS-level desktop notification for order dispatch
+│   ├── telegram_alerts.py        # Telegram bot logistics dispatch alerts
+│   └── warehouse_logger.py       # CSV append logger for warehouse events
 │
 ├── 📂 data_processing/
 │   └── preprocess_pipeline.py    # Lag-1, lag-7, temporal features, temporal split
