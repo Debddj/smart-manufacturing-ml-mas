@@ -43,8 +43,8 @@
 - [Machine Learning Pipeline](#machine-learning-pipeline)
 - [Reinforcement Learning](#reinforcement-learning)
 - [Disruption Engine](#disruption-engine)
-- [Agent-to-Agent Communication](#agent-to-agent-communication)
-- [UCP Commerce Layer](#ucp-commerce-layer)
+- [Interactive Dashboard](#interactive-dashboard)
+- [Visualisations](#visualisations)
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
@@ -290,16 +290,37 @@ reward = service_level × 20
 
 ## Disruption Engine
 
-Four real-world failure modes stress-test the trained policy:
+The disruption engine **stress-tests the trained policy** with four real-world failure modes. The RL agent **never observes disruption type directly** — it must infer from downstream signals and adapt, which is what makes the resilience score meaningful.
 
-| Disruption | Probability | Effect | Duration |
-|-----------|-------------|--------|----------|
-| **Supplier Failure** | 0.001/step | supply × 0.10 | 3–8 steps |
-| **Demand Surge** | 0.0015/step | demand × 2.0 | 2–5 steps |
-| **Logistics Breakdown** | 0.0008/step | capacity × 0.20 | 2–6 steps |
-| **Factory Slowdown** | 0.0012/step | production × 0.40 | 1–4 steps |
+```mermaid
+flowchart LR
+    E[DisruptionEngine\ntick per step] --> SF
+    E --> DS
+    E --> LB
+    E --> FS
 
-**Resilience:** Score **0.998** — near-zero degradation. Avg recovery: **0.58 steps**.
+    SF["Supplier Failure\nprob: 0.001 per step\nsupply × 0.10\nduration: 3–8 steps\nSeverity: HIGH"]
+    DS["Demand Surge\nprob: 0.0015 per step\ndemand × 2.0\nduration: 2–5 steps\nSeverity: MEDIUM"]
+    LB["Logistics Breakdown\nprob: 0.0008 per step\ncapacity × 0.20\nduration: 2–6 steps\nSeverity: HIGH"]
+    FS["Factory Slowdown\nprob: 0.0012 per step\nproduction × 0.40\nduration: 1–4 steps\nSeverity: MEDIUM"]
+
+    SF & DS & LB & FS --> A[apply to step params]
+    A --> ENV[SupplyChainEnvironment.step]
+
+    style SF fill:#FCEBEB,stroke:#E24B4A,color:#501313
+    style DS fill:#FAEEDA,stroke:#EF9F27,color:#412402
+    style LB fill:#E6F1FB,stroke:#185FA5,color:#042C53
+    style FS fill:#EEEDFE,stroke:#534AB7,color:#26215C
+```
+
+**Resilience results:**
+
+| Metric | Value | Interpretation |
+|--------|-------|----------------|
+| Resilience Score | **0.998** | Near-zero degradation under disruption |
+| Avg Recovery Steps | **0.58** | Returns to normal within 1 step of disruption ending |
+| Fill During Disruption | **0.993** | Only 0.4% drop from undisrupted performance |
+| Disruption Rate | **~18%** | 18% of all steps had at least one active disruption |
 
 ---
 
@@ -331,59 +352,11 @@ The **Universal Commerce Protocol** layer (`ucp/`) provides:
 ```
 smart-manufacturing-ml-mas/
 │
-├── 📂 agents/                          # 12 autonomous agents
-│   ├── order_management_agent.py       # Order state machine orchestrator
-│   ├── inventory_agent.py              # Global multi-warehouse routing (Branch A/B/C)
-│   ├── procurement_agent.py            # Disruption-aware procurement validation
-│   ├── fulfillment_agent.py            # Inventory availability gate
-│   ├── last_mile_agent.py              # Final delivery (express/standard/economy)
-│   ├── distribution_hub_agent.py       # Inter-warehouse transfer coordination
-│   ├── supplier_discovery_agent.py     # Alternative supplier scoring + contracts
-│   ├── factory_agent.py                # Heuristic baseline production
-│   ├── logistics_agent.py              # Transport ceiling (300 units)
-│   ├── supplier_agent.py               # Stochastic supply [80, 120, 180]
-│   └── warehouse_agent.py              # Greedy demand dispatcher
-│
-├── 📂 automations/                     # 6 real-time automations
-│   ├── notifications.py                # Desktop notifications (plyer)
-│   ├── email_sender.py                 # Supplier + Customer emails with PDF
-│   ├── telegram_alerts.py              # Telegram Bot logistics alerts
-│   └── warehouse_logger.py             # CSV warehouse transfer/dispatch log
-│
-├── 📂 api/                             # FastAPI backend
-│   ├── app.py                          # Routes, SSE/WebSocket, agent orchestration
-│   └── order_orchestrator.py           # Sequential MAS pipeline executor
-│
-├── 📂 frontend/                        # Dual frontend
-│   ├── shop.html                       # Customer-facing product shop
-│   └── mas-ops.html                    # Real-time MAS operations dashboard
-│
-├── 📂 communication/                   # A2A message bus
-│   └── message_bus.py                  # Priority-queue pub/sub (15 message types)
-│
-├── 📂 warehouse/                       # Multi-warehouse infrastructure
-│   └── warehouse_network.py            # 3-node network with Branch A/B/C logic
-│
-├── 📂 supplier/                        # Decentralised supplier network
-│   ├── supplier_network.py             # 5-node supplier graph + procurement routing
-│   ├── supplier_node.py                # Single supplier node model
-│   └── contract_engine.py              # Smart contract issuance
-│
-├── 📂 ucp/                             # Universal Commerce Protocol
-│   ├── ucp_product_catalog.py          # Product registry + UCP discovery
-│   ├── ucp_order_engine.py             # Order processing engine
-│   ├── ucp_capability_handler.py       # A2A/MCP capability negotiation
-│   └── ucp_agent_commerce.py           # Agent commerce interface
-│
-├── 📂 rl/                              # Reinforcement Learning
-│   ├── q_learning.py                   # Tabular Q-agent · 20×20 · 7 actions
-│   └── reward_functions.py             # Tiered service + cost reward
-│
-├── 📂 simulation/                      # Simulation engine
-│   ├── simulation_runner.py            # Training loop + agent event logging
-│   ├── baseline_runner.py              # No-RL heuristic comparison
-│   ├── disruption_engine.py            # 4-type stochastic fault injector
-│   └── environment.py                  # Inventory · cost · delay step function
+├── 📂 agents/
+│   ├── factory_agent.py          # Heuristic baseline (capacity-constrained production)
+│   ├── logistics_agent.py        # Transport ceiling · capacity: 300 units
+│   ├── supplier_agent.py         # Stochastic supply · batches: [80, 120, 180]
+│   └── warehouse_agent.py        # Greedy demand dispatcher · min(inventory, demand)
 │
 ├── 📂 data_processing/
 │   └── preprocess_pipeline.py          # Lag features, temporal split
