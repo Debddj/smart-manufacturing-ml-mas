@@ -1,10 +1,11 @@
 <div align="center">
 
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:534AB7,100:1D9E75&height=200&section=header&text=Smart%20Manufacturing%20ML-MAS&fontSize=42&fontColor=ffffff&fontAlignY=38&desc=Machine%20Learning%20%C2%B7%20Multi-Agent%20Systems%20%C2%B7%20Reinforcement%20Learning&descAlignY=58&descSize=16"/>
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:534AB7,100:1D9E75&height=200&section=header&text=Smart%20Manufacturing%20ML-MAS&fontSize=42&fontColor=ffffff&fontAlignY=38&desc=Machine%20Learning%20·%20Multi-Agent%20Systems%20·%20Reinforcement%20Learning%20·%20Real-Time%20Automations&descAlignY=58&descSize=16"/>
 
 <br/>
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
 [![Reinforcement Learning](https://img.shields.io/badge/Q--Learning-RL-7F77DD?style=for-the-badge&logo=openai&logoColor=white)]()
 [![Chart.js](https://img.shields.io/badge/Chart.js-Dashboard-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white)](https://chartjs.org)
@@ -15,16 +16,17 @@
 [![Fill Rate](https://img.shields.io/badge/Fill%20Rate-0.997-1D9E75?style=flat-square&labelColor=0d1117)](/)
 [![Cost Saving](https://img.shields.io/badge/Cost%20Saving-36%25%20vs%20Baseline-534AB7?style=flat-square&labelColor=0d1117)](/)
 [![Resilience Score](https://img.shields.io/badge/Resilience-0.998-EF9F27?style=flat-square&labelColor=0d1117)](/)
-[![Avg Delay](https://img.shields.io/badge/Avg%20Delay-0.39%20units-E24B4A?style=flat-square&labelColor=0d1117)](/)
+[![Agents](https://img.shields.io/badge/Agents-12-E24B4A?style=flat-square&labelColor=0d1117)](/)
+[![Automations](https://img.shields.io/badge/Automations-6-378ADD?style=flat-square&labelColor=0d1117)](/)
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-View%20Now-1D9E75?style=flat-square&logo=googlechrome&logoColor=white)](https://debnil-dey.github.io/smart-manufacturing-ml-mas/)
 
 <br/>
 
-> **A production-grade Machine Learning driven Multi-Agent System for dynamic resource allocation in smart manufacturing supply chains — featuring Q-Learning RL, disruption resilience testing, and a real-time interactive browser dashboard.**
+> **A production-grade Machine Learning driven Multi-Agent System for dynamic resource allocation in smart manufacturing supply chains — featuring Q-Learning RL, 12 autonomous agents, 6 real-time automations, a dual-frontend (Shop + MAS Ops Dashboard), and a disruption-resilient order fulfilment pipeline.**
 
 <br/>
 
-[**🌐 Live Dashboard**](https://Debddj.github.io/smart-manufacturing-ml-mas/) &nbsp;·&nbsp; [**📄 Technical Report**](outputs/) &nbsp;·&nbsp; [**📊 View Results**](#key-results) &nbsp;·&nbsp; [**🚀 Get Started**](#quick-start)
+[**🌐 Live Dashboard**](https://Debddj.github.io/smart-manufacturing-ml-mas/) &nbsp;·&nbsp; [**📄 Technical Report**](REPORT.md) &nbsp;·&nbsp; [**📊 View Results**](#key-results) &nbsp;·&nbsp; [**🚀 Get Started**](#quick-start)
 
 </div>
 
@@ -35,16 +37,17 @@
 - [Overview](#overview)
 - [Key Results](#key-results)
 - [System Architecture](#system-architecture)
-- [The Four Agents](#the-four-agents)
+- [The 12 Agents](#the-12-agents)
+- [6 Real-Time Automations](#6-real-time-automations)
+- [Dual Frontend](#dual-frontend)
 - [Machine Learning Pipeline](#machine-learning-pipeline)
 - [Reinforcement Learning](#reinforcement-learning)
 - [Disruption Engine](#disruption-engine)
-- [Interactive Dashboard](#interactive-dashboard)
-- [Visualisations](#visualisations)
+- [Agent-to-Agent Communication](#agent-to-agent-communication)
+- [UCP Commerce Layer](#ucp-commerce-layer)
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
-- [Engineering Highlights](#engineering-highlights)
 - [Tech Stack](#tech-stack)
 - [Team](#team)
 
@@ -52,13 +55,24 @@
 
 ## Overview
 
-Smart Manufacturing ML-MAS simulates a real-world production ecosystem where four autonomous agents — **Supplier**, **Factory (RL)**, **Warehouse**, and **Logistics** — collaborate under uncertain demand and active supply chain disruptions. The system learns optimal resource allocation policies using **Q-Learning reinforcement learning**, continuously improving across 100 training episodes.
+Smart Manufacturing ML-MAS simulates a real-world production ecosystem where **12 autonomous agents** collaborate under uncertain demand and active supply chain disruptions. The system learns optimal resource allocation policies using **Q-Learning reinforcement learning**, continuously improving across 100 training episodes.
+
+The platform has evolved through 27 commits from a basic 4-agent simulation into a **full-stack supply chain platform** with:
+
+- **12 specialised agents** — from order intake to last-mile delivery
+- **6 real-time automations** — desktop notifications, email (supplier + customer), PDF invoices, Telegram alerts, warehouse CSV logging
+- **Dual frontend** — customer-facing Shop UI + real-time MAS Operations Dashboard
+- **FastAPI backend** — SSE/WebSocket streaming of live agent events
+- **A2A message bus** — priority-queue pub/sub for decentralised agent communication
+- **Multi-warehouse network** — 3-node inventory with Branch A/B/C routing
+- **UCP commerce layer** — product catalog with discovery, cart, and checkout
+- **Decentralised supplier network** — 5 supplier nodes with smart contract engine
 
 The project answers one industry-critical question:
 
 > *How much better is an RL-driven supply chain than a human heuristic planner — and does it hold up when things go wrong?*
 
-**Answer:** The RL system achieves comparable service levels to the heuristic baseline at **36% lower operational cost**, and maintains a **resilience score of 0.998** under active disruptions including supplier failures, demand surges, and logistics breakdowns.
+**Answer:** The RL system achieves comparable service levels to the heuristic baseline at **36% lower operational cost**, and maintains a **resilience score of 0.998** under active disruptions.
 
 ---
 
@@ -77,8 +91,6 @@ The project answers one industry-critical question:
 
 </div>
 
-<br/>
-
 > 💡 **The key insight:** The baseline over-produces to guarantee service at 36M cost. The RL system learns *just-in-time* production decisions that match service quality at 23M — a **36% cost reduction** without sacrificing a single SLA point.
 
 ---
@@ -91,7 +103,7 @@ flowchart TD
     B --> C[DemandForecaster\nRandomForest · 50 trees]
     C -->|182K predictions| D[train_rl_agent]
 
-    subgraph CORE ["Simulation Core  ·  100 episodes  ×  182K steps per episode"]
+    subgraph CORE ["Simulation Core  ·  100 episodes  ×  182K steps"]
         direction TB
         D --> E[DisruptionEngine\nStochastic fault injection]
         E --> F[SupplierAgent\nRaw material supply]
@@ -102,87 +114,125 @@ flowchart TD
         J -->|reward signal| G
     end
 
-    J --> K[Metrics Engine\nFill rate · resilience · cost]
-    K --> L[7 Matplotlib Plots]
-    K --> M[Interactive Dashboard\ndashboard.html]
+    subgraph API ["FastAPI Backend · SSE + WebSocket"]
+        K[OrderOrchestrator] --> L[OrderManagementAgent]
+        L --> M[InventoryAgent]
+        M --> N[ProcurementAgent]
+        N --> O[LogisticsAgent]
+        O --> P[LastMileAgent]
+    end
+
+    subgraph AUTO ["6 Automations"]
+        Q[Desktop Notification]
+        R[Email — Supplier]
+        S[Email — Customer]
+        T[PDF Invoice]
+        U[Telegram Bot Alert]
+        V[warehouse_log.csv]
+    end
+
+    J --> W[Metrics Engine]
+    W --> X[7 Matplotlib Plots]
+    W --> Y[Interactive Dashboard]
+    K -.-> AUTO
 
     style CORE fill:#1a1a2e,stroke:#534AB7,stroke-width:2px,color:#e8e6dc
+    style API fill:#0d1b2a,stroke:#378ADD,stroke-width:2px,color:#e8e6dc
+    style AUTO fill:#1b2e1a,stroke:#1D9E75,stroke-width:2px,color:#e8e6dc
     style A fill:#E1F5EE,stroke:#1D9E75,color:#04342C
-    style M fill:#E6F1FB,stroke:#185FA5,color:#042C53
     style E fill:#FCEBEB,stroke:#E24B4A,color:#501313
     style G fill:#E6F1FB,stroke:#378ADD,color:#042C53
 ```
 
 ---
 
-## The Four Agents
+## The 12 Agents
 
-The system uses a **fixed execution sequence** every simulation step. Each agent owns exactly one responsibility in the supply chain and passes its output to the next:
+The system evolved from 4 simulation agents to **12 specialised agents** spanning the entire supply chain:
+
+### Core Simulation Agents (RL Training Loop)
+
+| # | Agent | File | Role |
+|---|-------|------|------|
+| 1 | **SupplierAgent** | `agents/supplier_agent.py` | Stochastic upstream source. Batches from `[80, 120, 180]` units. Under disruption: supply × 0.10 |
+| 2 | **QLearningAgent** | `rl/q_learning.py` | System intelligence. 20×20×7 Q-table mapping `(inventory, demand)` → production action |
+| 3 | **WarehouseAgent** | `agents/warehouse_agent.py` | Greedy dispatcher — ships `min(inventory, demand)` every step |
+| 4 | **LogisticsAgent** | `agents/logistics_agent.py` | Transport ceiling: `min(shipment, 300)`. Under disruption: capacity × 0.20 |
+
+### Extended MAS Agents (Order Pipeline)
+
+| # | Agent | File | Role |
+|---|-------|------|------|
+| 5 | **OrderManagementAgent** | `agents/order_management_agent.py` | Order state machine: RECEIVED → INVENTORY_CHECK → SOURCING → IN_TRANSIT → DELIVERED → COMPLETE |
+| 6 | **InventoryAgent** | `agents/inventory_agent.py` | Global multi-warehouse view. Branch A/B/C routing decisions across 3 warehouse nodes |
+| 7 | **ProcurementAgent** | `agents/procurement_agent.py` | Validates production orders. Disruption-aware safety buffers with MAX_PROCUREMENT_CAP |
+| 8 | **FulfillmentAgent** | `agents/fulfillment_agent.py` | Inventory availability gate. Routes YES → LastMile, NO → SupplierDiscovery |
+| 9 | **LastMileDeliveryAgent** | `agents/last_mile_agent.py` | Final delivery hop. Routes: express (≤150), standard (≤300), economy (>300) |
+| 10 | **DistributionHubAgent** | `agents/distribution_hub_agent.py` | Coordinates inter-warehouse transfers (Branch B). Tracks routing efficiency |
+| 11 | **SupplierDiscoveryAgent** | `agents/supplier_discovery_agent.py` | Scores 5 alternative suppliers by reliability × capacity × cost. Smart contract issuance |
+| 12 | **SeasonalAgent** | *(via API endpoint)* | Context-aware seasonal stock transfers between Warehouse A and B |
+
+---
+
+## 6 Real-Time Automations
+
+All six automations fire automatically during the order fulfilment pipeline via the `OrderOrchestrator`:
+
+| # | Automation | Module | Trigger Point | Description |
+|---|-----------|--------|---------------|-------------|
+| 🔔 1 | **Desktop Notification** | `automations/notifications.py` | `OrderManagementAgent` after order validation | OS-level notification via `plyer`. Shows order ID, context, and validation status. *(Local only — not visible in browser recordings)* |
+| 📧 2 | **Supplier Email** | `automations/email_sender.py` | After inventory routing decision | Procurement smart-contract email with PDF attachment sent to supply chain team via Gmail SMTP |
+| 📧 3 | **Customer Email** | `automations/email_sender.py` | `LastMileDeliveryAgent` after dispatch | Fulfillment confirmation email with PDF invoice attached. Includes order summary, amounts with GST *(Both emails sent to same address — separate addresses require external API service)* |
+| 📄 4 | **PDF Invoice Generation** | `automations/email_sender.py` | Alongside customer email | ReportLab-generated professional invoice PDF with line items, GST breakdown, SHA-256 hash, and payment terms |
+| 🤖 5 | **Telegram Bot Alert** | `automations/telegram_alerts.py` | `LogisticsAgent` after goods loaded | Logistics dispatch alert sent via Telegram Bot API with order ID, units, destination, and route status |
+| 📊 6 | **Warehouse Log CSV** | `automations/warehouse_logger.py` | `InventoryAgent` + `LogisticsAgent` | Auto-appends transfer/dispatch rows to `warehouse_log.csv` with timestamp, agent, action, warehouses, units, context |
+
+### Automation Architecture
 
 ```mermaid
 sequenceDiagram
-    participant S as SupplierAgent
-    participant RL as QLearningAgent
-    participant W as WarehouseAgent
-    participant L as LogisticsAgent
-    participant E as Environment
+    participant C as Customer
+    participant OMA as OrderManagementAgent
+    participant INV as InventoryAgent
+    participant LOG as LogisticsAgent
+    participant LM as LastMileAgent
 
-    Note over S,E: Every simulation step (×182K per episode)
-
-    S->>RL: Raw material batch (80–180 units, stochastic draw)
-    Note over S: Under disruption: supply × 0.10
-
-    RL->>W: Production quantity (Q-table decision, epsilon-greedy)
-    Note over RL: State = (inventory bin, demand bin)
-
-    W->>L: Shipment = min(inventory + production, demand)
-    Note over W: No internal memory — pure greedy dispatch
-
-    L->>E: Transport = min(shipment, capacity=300)
-    Note over L: Under disruption: capacity × 0.20
-
-    E->>RL: reward = f(service_level, cost, delay)
-    Note over E: inventory += production\ncost = prod×1.0 + hold×0.5 + delay×5.0
+    C->>OMA: Place Order
+    OMA->>OMA: 🔔 Desktop Notification
+    OMA->>INV: Stock Check
+    INV->>INV: 📊 CSV Log (Transfer)
+    INV-->>OMA: 📧 Supplier Email + PDF
+    OMA->>LOG: Dispatch
+    LOG->>LOG: 🤖 Telegram Alert
+    LOG->>LOG: 📊 CSV Log (Dispatch)
+    LOG->>LM: Last Mile
+    LM-->>C: 📧 Customer Email + 📄 Invoice PDF
 ```
 
-<br/>
+### Environment Variables Required
 
-<table>
-<tr>
-<td align="center" width="25%">
+```env
+# Gmail SMTP (for supplier + customer emails)
+SENDER_EMAIL=your-email@gmail.com
+SENDER_PASSWORD=xxxx-xxxx-xxxx-xxxx    # Gmail App Password (16-char)
 
-### 🟠 SupplierAgent
-`agents/supplier_agent.py`
+# Telegram Bot API (for logistics alerts)
+TELEGRAM_BOT_TOKEN=123456:ABC-DEF...   # From @BotFather
+TELEGRAM_CHAT_ID=123456789             # Recipient chat ID
+```
 
-Stochastic upstream source. Draws randomly from `[80, 120, 180]` units per step. Under `supplier_failure` disruption, output drops to **10% of normal**. The RL agent never sees the disruption flag — it must infer from inventory signals.
+---
 
-</td>
-<td align="center" width="25%">
+## Dual Frontend
 
-### 🔵 QLearningAgent
-`rl/q_learning.py`
+The platform serves two HTML frontends via FastAPI:
 
-The system's intelligence. Maintains a **20×20×7 Q-table** mapping `(inventory_state, demand_state)` → production action. Seven production choices: `[20, 40, 60, 80, 120, 160, 200]` units. Learns from reward signals via Bellman updates.
+| Frontend | Route | File | Purpose |
+|----------|-------|------|---------|
+| **Shop UI** | `/` or `/shop` | `frontend/shop.html` | Customer-facing product catalog with cart, checkout, environment context selection |
+| **MAS Ops Dashboard** | `/dashboard` or `/mas-ops` | `frontend/mas-ops.html` | Real-time agent activity monitor with SSE/WebSocket event streaming |
 
-</td>
-<td align="center" width="25%">
-
-### 🟣 WarehouseAgent
-`agents/warehouse_agent.py`
-
-Greedy inventory dispatcher. Ships `min(inventory, demand)` every step — no memory, no strategy. Its performance is entirely determined by how well the RL agent maintains adequate stock levels upstream.
-
-</td>
-<td align="center" width="25%">
-
-### 🟢 LogisticsAgent
-`agents/logistics_agent.py`
-
-Physical transport constraint. Enforces `min(shipment, 300)` as daily fleet ceiling. Under `logistics_breakdown` disruption, capacity collapses to **60 units** (20% of normal), temporarily throttling all deliveries.
-
-</td>
-</tr>
-</table>
+Both frontends connect to the FastAPI backend which orchestrates the full MAS pipeline and streams agent events in real-time.
 
 ---
 
@@ -194,7 +244,7 @@ flowchart LR
     B --> C[Time Features\nday · month · year\nday_of_week]
     C --> D[Lag Features\nlag_1 · lag_7\nper store and item group]
     D --> E[Handle Missing\nbfill then ffill]
-    E --> F[Temporal Split\n80 percent train\n20 percent test\nshuffle = False]
+    E --> F[Temporal Split\n80% train\n20% test\nshuffle = False]
     F --> G[RandomForest\n50 estimators]
     G --> H[182K predictions\nfed into simulation]
 
@@ -203,17 +253,12 @@ flowchart LR
     style G fill:#FAEEDA,stroke:#EF9F27
 ```
 
-**Dataset characteristics:**
-
-| Property | Value | Significance |
-|----------|-------|-------------|
-| Total rows | 913,000 | Large enough for robust generalisation |
-| Stores × Items | 10 × 50 = 500 groups | Multi-dimensional demand patterns |
-| Mean daily sales | 52.25 units | Sets production action space lower bound |
-| Max daily sales | 231 units | Sets action space upper bound |
-| % demand > 60 units | **33.8%** | *Exposed the logistics capacity bug — original cap of 60 hard-limited fill rate* |
-
-`shuffle=False` is critical — temporal order must be preserved so the model predicts the future, not random past dates.
+| Property | Value |
+|----------|-------|
+| Total rows | 913,000 |
+| Stores × Items | 10 × 50 = 500 groups |
+| Mean daily sales | 52.25 units |
+| Max daily sales | 231 units |
 
 ---
 
@@ -221,117 +266,63 @@ flowchart LR
 
 ### Q-Learning Policy
 
-The agent discretises the continuous environment into a tractable state space and learns via the **Bellman equation**:
-
 $$Q[s][d][a] \mathrel{+}= \alpha \cdot \left( r + \gamma \cdot \max_a Q[s'][d'] - Q[s][d][a] \right)$$
 
 | Parameter | Value | Rationale |
 |-----------|-------|-----------|
-| State space | 20×20 bins | Inventory (0–300 units) × Demand (0–250 units) |
-| Actions | `[20, 40, 60, 80, 120, 160, 200]` | Covers mean demand (52) through surge (200+) |
+| State space | 20×20 bins | Inventory (0–300) × Demand (0–250) |
+| Actions | `[20, 40, 60, 80, 120, 160, 200]` | Covers mean demand through surge |
 | Learning rate α | 0.20 | Fast convergence without instability |
-| Discount factor γ | 0.95 | Agent effectively plans ~20 steps ahead |
-| Initial ε | 1.0 | Full random exploration at episode 1 |
-| ε decay | ×0.97 per **episode** | Reaches ~0.05 by episode 100 |
-| ε floor | 0.01 | Always retains 1% exploration |
+| Discount factor γ | 0.95 | Plans ~20 steps ahead |
+| ε decay | ×0.97 per episode | Reaches ~0.05 by episode 100 |
 
 ### Reward Function
 
 ```python
-reward = service_level × 20           # primary: filling demand
-       − cost × 0.005                  # secondary: controlling cost
-       + 5.0  if service_level ≥ 0.90  # SLA bonus — cross the threshold
-       + 3.0  if service_level ≥ 0.95  # stretch bonus — exceed expectations
-       − excess_production × 0.05      # over-production penalty
-```
-
-The **tiered bonus structure** prevents the agent from over-stocking to guarantee a perfect 1.0 fill rate at the expense of cost. There is no reward signal beyond 0.97 — the agent learns cost-efficient policies that still clear SLA.
-
-### Training Convergence
-
-```
-Episodes  1–20  │▓▓▓▓▓▓▓▓░░░░░░░░░░░░│ Rapid gain   — high ε, full exploration
-Episodes 20–50  │▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░│ Solidifying  — ε falling, Q-table stabilising
-Episodes 50–100 │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│ Converged    — stable policy, marginal gains
+reward = service_level × 20
+       − cost × 0.005
+       + 5.0  if service_level ≥ 0.90   # SLA bonus
+       + 3.0  if service_level ≥ 0.95   # stretch bonus
+       − excess_production × 0.05       # over-production penalty
 ```
 
 ---
 
 ## Disruption Engine
 
-The disruption engine **stress-tests the trained policy** with four real-world failure modes. The RL agent **never observes disruption type directly** — it must infer from downstream signals and adapt, which is what makes the resilience score meaningful.
+Four real-world failure modes stress-test the trained policy:
 
-```mermaid
-flowchart LR
-    E[DisruptionEngine\ntick per step] --> SF
-    E --> DS
-    E --> LB
-    E --> FS
+| Disruption | Probability | Effect | Duration |
+|-----------|-------------|--------|----------|
+| **Supplier Failure** | 0.001/step | supply × 0.10 | 3–8 steps |
+| **Demand Surge** | 0.0015/step | demand × 2.0 | 2–5 steps |
+| **Logistics Breakdown** | 0.0008/step | capacity × 0.20 | 2–6 steps |
+| **Factory Slowdown** | 0.0012/step | production × 0.40 | 1–4 steps |
 
-    SF["Supplier Failure\nprob: 0.001 per step\nsupply × 0.10\nduration: 3–8 steps\nSeverity: HIGH"]
-    DS["Demand Surge\nprob: 0.0015 per step\ndemand × 2.0\nduration: 2–5 steps\nSeverity: MEDIUM"]
-    LB["Logistics Breakdown\nprob: 0.0008 per step\ncapacity × 0.20\nduration: 2–6 steps\nSeverity: HIGH"]
-    FS["Factory Slowdown\nprob: 0.0012 per step\nproduction × 0.40\nduration: 1–4 steps\nSeverity: MEDIUM"]
-
-    SF & DS & LB & FS --> A[apply to step params]
-    A --> ENV[SupplyChainEnvironment.step]
-
-    style SF fill:#FCEBEB,stroke:#E24B4A,color:#501313
-    style DS fill:#FAEEDA,stroke:#EF9F27,color:#412402
-    style LB fill:#E6F1FB,stroke:#185FA5,color:#042C53
-    style FS fill:#EEEDFE,stroke:#534AB7,color:#26215C
-```
-
-**Resilience results:**
-
-| Metric | Value | Interpretation |
-|--------|-------|----------------|
-| Resilience Score | **0.998** | Near-zero degradation under disruption |
-| Avg Recovery Steps | **0.58** | Returns to normal within 1 step of disruption ending |
-| Fill During Disruption | **0.993** | Only 0.4% drop from undisrupted performance |
-| Disruption Rate | **~18%** | 18% of all steps had at least one active disruption |
+**Resilience:** Score **0.998** — near-zero degradation. Avg recovery: **0.58 steps**.
 
 ---
 
-## Interactive Dashboard
+## Agent-to-Agent Communication
 
-The system generates a **fully self-contained HTML dashboard** — no server required, no dependencies beyond a browser, works completely offline.
+The `MessageBus` provides a priority-queue pub/sub system replacing direct agent calls:
 
-🌐 **[Open Live Dashboard →](https://Debddj.github.io/smart-manufacturing-ml-mas/)**
-
-**Dashboard features:**
-
-| Section | Description |
-|---------|-------------|
-| **KPI Scorecard** | Fill rate, avg delay, resilience, throughput — with SLA PASS/FAIL badges |
-| **Scenario Comparison** | Side-by-side cards: No-RL baseline · RL normal · RL disrupted |
-| **3D Architecture Diagram** | Animated live data flow through all system components |
-| **RL Learning Curve** | Reward convergence across 100 training episodes |
-| **Fill Rate + Delay** | Dual-axis chart with SLA threshold lines per episode |
-| **Demand vs Supply** | Last episode coverage with area fill |
-| **Inventory Levels** | With safety stock threshold band and warning zone |
-| **Cost Breakdown** | Stacked area — production vs holding vs delay costs |
-| **Resilience Radar** | Spider chart: normal vs disrupted on 5 performance axes |
-| **Agent Activity Log** | Filterable structured event stream — each agent reports in its own vocabulary |
-| **Export Report** | One-click CSV with all metrics, scenarios, and full event log |
-
-The dashboard updates automatically every time `python main.py` completes and is pushed to GitHub.
+- **Priority levels:** ALERT → WARNING → INFO → ACTION
+- **15 message types** covering disruptions, inventory, orders, suppliers, forecasts, logistics
+- **Error isolation:** handler exceptions are caught — one broken handler never blocks others
+- **Capped log:** max 5,000 archived messages per episode
 
 ---
 
-## Visualisations
+## UCP Commerce Layer
 
-Seven plots are auto-generated to `outputs/plots/` after every training run:
+The **Universal Commerce Protocol** layer (`ucp/`) provides:
 
-| Plot | File | What it shows |
-|------|------|---------------|
-| RL Learning Curve | `learning_curve.png` | Reward convergence — confirms stable training |
-| Demand vs Supply | `demand_vs_supply.png` | Per-step coverage across all 182K timesteps |
-| Inventory Levels | `inventory_levels.png` | Buffer management with disruption markers |
-| Disruption Timeline | `disruption_timeline.png` | Shaded fault windows + fill rate overlay |
-| Cost Breakdown | `cost_breakdown.png` | Stacked area — where operational cost goes |
-| Episode Metrics | `episode_metrics.png` | Dual-axis fill rate and delay across episodes |
-| Resilience Radar | `resilience_radar.png` | Normal vs disrupted on 5 performance axes |
+- **Product Catalog** — 5 pre-loaded industrial products with UCP-compliant listings
+- **Full-text search** across name, description, category, tags
+- **Real-time inventory sync** with WarehouseNetwork
+- **Capability negotiation** — `/profile` endpoint for A2A/MCP discovery
+- **Cart + Checkout** support for the Shop UI frontend
 
 ---
 
@@ -340,139 +331,154 @@ Seven plots are auto-generated to `outputs/plots/` after every training run:
 ```
 smart-manufacturing-ml-mas/
 │
-├── 📂 agents/
-│   ├── factory_agent.py          # Heuristic baseline (capacity-constrained production)
-│   ├── logistics_agent.py        # Transport ceiling · capacity: 300 units
-│   ├── supplier_agent.py         # Stochastic supply · batches: [80, 120, 180]
-│   └── warehouse_agent.py        # Greedy demand dispatcher · min(inventory, demand)
+├── 📂 agents/                          # 12 autonomous agents
+│   ├── order_management_agent.py       # Order state machine orchestrator
+│   ├── inventory_agent.py              # Global multi-warehouse routing (Branch A/B/C)
+│   ├── procurement_agent.py            # Disruption-aware procurement validation
+│   ├── fulfillment_agent.py            # Inventory availability gate
+│   ├── last_mile_agent.py              # Final delivery (express/standard/economy)
+│   ├── distribution_hub_agent.py       # Inter-warehouse transfer coordination
+│   ├── supplier_discovery_agent.py     # Alternative supplier scoring + contracts
+│   ├── factory_agent.py                # Heuristic baseline production
+│   ├── logistics_agent.py              # Transport ceiling (300 units)
+│   ├── supplier_agent.py               # Stochastic supply [80, 120, 180]
+│   └── warehouse_agent.py              # Greedy demand dispatcher
+│
+├── 📂 automations/                     # 6 real-time automations
+│   ├── notifications.py                # Desktop notifications (plyer)
+│   ├── email_sender.py                 # Supplier + Customer emails with PDF
+│   ├── telegram_alerts.py              # Telegram Bot logistics alerts
+│   └── warehouse_logger.py             # CSV warehouse transfer/dispatch log
+│
+├── 📂 api/                             # FastAPI backend
+│   ├── app.py                          # Routes, SSE/WebSocket, agent orchestration
+│   └── order_orchestrator.py           # Sequential MAS pipeline executor
+│
+├── 📂 frontend/                        # Dual frontend
+│   ├── shop.html                       # Customer-facing product shop
+│   └── mas-ops.html                    # Real-time MAS operations dashboard
+│
+├── 📂 communication/                   # A2A message bus
+│   └── message_bus.py                  # Priority-queue pub/sub (15 message types)
+│
+├── 📂 warehouse/                       # Multi-warehouse infrastructure
+│   └── warehouse_network.py            # 3-node network with Branch A/B/C logic
+│
+├── 📂 supplier/                        # Decentralised supplier network
+│   ├── supplier_network.py             # 5-node supplier graph + procurement routing
+│   ├── supplier_node.py                # Single supplier node model
+│   └── contract_engine.py              # Smart contract issuance
+│
+├── 📂 ucp/                             # Universal Commerce Protocol
+│   ├── ucp_product_catalog.py          # Product registry + UCP discovery
+│   ├── ucp_order_engine.py             # Order processing engine
+│   ├── ucp_capability_handler.py       # A2A/MCP capability negotiation
+│   └── ucp_agent_commerce.py           # Agent commerce interface
+│
+├── 📂 rl/                              # Reinforcement Learning
+│   ├── q_learning.py                   # Tabular Q-agent · 20×20 · 7 actions
+│   └── reward_functions.py             # Tiered service + cost reward
+│
+├── 📂 simulation/                      # Simulation engine
+│   ├── simulation_runner.py            # Training loop + agent event logging
+│   ├── baseline_runner.py              # No-RL heuristic comparison
+│   ├── disruption_engine.py            # 4-type stochastic fault injector
+│   └── environment.py                  # Inventory · cost · delay step function
 │
 ├── 📂 data_processing/
-│   └── preprocess_pipeline.py    # Lag-1, lag-7, temporal features, temporal split
-│
-├── 📂 evaluation/
-│   └── metrics.py                # fill rate · delay · throughput · resilience metrics
+│   └── preprocess_pipeline.py          # Lag features, temporal split
 │
 ├── 📂 forecasting/
-│   ├── demand_forecasting.py     # RandomForest inference wrapper (runtime)
-│   └── train_model.py            # Training + MAE evaluation (development)
+│   ├── demand_forecasting.py           # RandomForest inference
+│   └── train_model.py                  # Training + MAE evaluation
 │
-├── 📂 rl/
-│   ├── q_learning.py             # Tabular Q-agent · 20×20 state · 7 actions
-│   └── reward_functions.py       # Tiered service bonus + over-production penalty
-│
-├── 📂 simulation/
-│   ├── baseline_runner.py        # No-RL heuristic for scenario comparison
-│   ├── disruption_engine.py      # 4-type stochastic fault injector
-│   ├── environment.py            # Inventory · cost · delay step function
-│   └── simulation_runner.py      # Training loop + agent event log generation
+├── 📂 evaluation/
+│   └── metrics.py                      # Fill rate · delay · resilience
 │
 ├── 📂 visualization/
-│   ├── dashboard.html            # Self-contained dashboard template
-│   ├── export_dashboard_data.py  # Injects real training data into template
-│   └── plots.py                  # 7 matplotlib plot functions
+│   └── plots.py                        # 7 matplotlib charts
 │
-├── 📂 data/raw/
-│   └── demand.csv                # 913K rows: date · store · item · sales
+├── 📂 tests/                           # Unit tests
+│   ├── test_warehouse_network.py
+│   ├── test_inventory_agent.py
+│   ├── test_message_bus.py
+│   ├── test_order_lifecycle.py
+│   └── test_supplier_network.py
 │
-├── 📂 outputs/
-│   ├── dashboard.html            # Auto-generated after training
-│   └── plots/                    # 7 PNG charts
-│
-├── index.html                    # GitHub Pages live dashboard (auto-updated)
-├── main.py                       # Entry point — runs complete pipeline
-└── requirements.txt
+├── warehouse_log.csv                   # Auto-updated warehouse transfer log
+├── main.py                             # Entry point — RL training pipeline
+├── index.html                          # GitHub Pages dashboard
+├── requirements.txt                    # Python dependencies
+├── REPORT.md                           # Technical report
+└── credentials.txt                     # Credential setup guide
 ```
 
 ---
 
 ## Quick Start
 
-**1. Clone and install**
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/Debddj/smart-manufacturing-ml-mas.git
 cd smart-manufacturing-ml-mas
-pip install pandas scikit-learn numpy matplotlib
+pip install -r requirements.txt
 ```
 
-**2. Add the dataset**
+### 2. Additional dependencies for automations
+
+```bash
+pip install fastapi uvicorn python-dotenv plyer reportlab requests
+```
+
+### 3. Configure environment (for automations)
+
+Create a `.env` file in the project root:
+
+```env
+SENDER_EMAIL=your-email@gmail.com
+SENDER_PASSWORD=xxxx-xxxx-xxxx-xxxx
+TELEGRAM_BOT_TOKEN=your-bot-token
+TELEGRAM_CHAT_ID=your-chat-id
+```
+
+### 4. Add the dataset
 
 ```bash
 # Place demand.csv in:
 data/raw/demand.csv
 ```
 
-**3. Run the full pipeline**
+### 5. Run the RL training pipeline
 
 ```bash
 python main.py
 ```
 
-Expected output sequence:
+### 6. Run the full-stack platform (Shop + Dashboard + Automations)
 
-```
-Preprocessing...
-Training ML model...
-Training RL agent...
-  Ep  10 | Reward: 44512800.00 | Fill: 0.921 | Delay: 1.84 | ε: 0.737
-  Ep  20 | Reward: 45891200.00 | Fill: 0.962 | Delay: 0.82 | ε: 0.541
-  ...
-  Ep 100 | Reward: 47610900.00 | Fill: 0.997 | Delay: 0.17 | ε: 0.048
-
-Running post-training scenario comparison...
-  No-RL baseline              fill=1.000  SLA:PASS  baseline
-  RL system — normal          fill=0.997  SLA:PASS  saves 36.0% cost
-  RL system — disrupted       fill=0.993  SLA:PASS  saves 35.8% cost
-
-Generating plots...
-  Saved: outputs/plots/learning_curve.png
-  ...
-
-Dashboard exported → outputs/dashboard.html
-  GitHub Pages index updated → index.html
-  Open in browser: file:///...
+```bash
+uvicorn api.app:app --reload --port 8000
 ```
 
-Training takes approximately **15–25 minutes** depending on your machine.
-
-**4. Toggle disruptions off for a clean baseline run**
-
-```python
-# In main.py:
-train_rl_agent(predictions, episodes=100, disruptions_enabled=False)
-```
+Then open:
+- **Shop:** http://localhost:8000/shop
+- **MAS Dashboard:** http://localhost:8000/dashboard
 
 ---
 
 ## Configuration
 
-| Parameter | File | Default | Effect of changing |
-|-----------|------|---------|-------------------|
-| `actions` | `rl/q_learning.py` | `[20,40,60,80,120,160,200]` | Finer or coarser production control |
-| `n_bins` | `rl/q_learning.py` | `20` | More bins = richer policy, slower convergence |
-| `alpha` | `rl/q_learning.py` | `0.20` | Higher = faster but less stable updates |
-| `gamma` | `rl/q_learning.py` | `0.95` | Higher = agent plans further ahead |
-| `episodes` | `main.py` | `100` | Diminishing returns past ~60 episodes |
-| Holding cost | `simulation/environment.py` | `× 0.5` | Higher discourages excess inventory |
-| Delay penalty | `simulation/environment.py` | `× 5.0` | Higher prioritises service over cost |
-| `SLA_FILL_RATE` | `simulation/simulation_runner.py` | `0.90` | Updates all dashboard threshold lines |
-| `SLA_AVG_DELAY` | `simulation/simulation_runner.py` | `5.0` | Updates delay SLA across all charts |
-| Disruption probabilities | `simulation/disruption_engine.py` | `0.0008–0.0015` | Higher = more frequent fault injection |
-
----
-
-## Engineering Highlights
-
-**Six critical bugs were identified, diagnosed, and fixed** during development. Each was quantified by its contribution to the fill-rate gap (0.76 → 0.997):
-
-| # | Bug | File | Root Cause | Impact |
-|---|-----|------|------------|--------|
-| 1 | `LogisticsAgent.capacity = 60` | `logistics_agent.py` | 33.8% of real demand exceeds 60 units — hard ceiling on fill rate | **~52% of the gap** |
-| 2 | Epsilon decay per step | `simulation_runner.py` | `epsilon *= 0.995` inside day loop — reached 0.01 after 660 steps (0.36% of episode 1) | **~28% of the gap** |
-| 3 | `env.step(0, transport, demand)` | `simulation_runner.py` | Production cost always 0×1.0 = 0 — reward signal corrupted | **~10% of the gap** |
-| 4 | Wrong state in Q-update | `simulation_runner.py` | Post-action inventory as current state — Bellman equation inverted | **~6% of the gap** |
-| 5 | Action space max = 80 < mean demand 52 | `q_learning.py` | Average production below average demand — inventory depletes over time | Remaining gap |
-| 6 | Demand discretised against range 300 vs actual 231 | `q_learning.py` | 20% of Q-table bins unreachable by real demand | State space waste |
+| Parameter | File | Default | Effect |
+|-----------|------|---------|--------|
+| `actions` | `rl/q_learning.py` | `[20,40,60,80,120,160,200]` | Production control granularity |
+| `n_bins` | `rl/q_learning.py` | `20` | More bins = richer policy |
+| `alpha` | `rl/q_learning.py` | `0.20` | Learning rate |
+| `gamma` | `rl/q_learning.py` | `0.95` | Discount factor |
+| `episodes` | `main.py` | `100` | Training episodes |
+| `USE_DQN` | `main.py` | `False` | Toggle PyTorch DQN mode |
+| `REWARD_PROFILE` | `main.py` | `balanced` | `balanced / speed / cost / resilience` |
+| Disruption probs | `disruption_engine.py` | `0.0008–0.0015` | Fault injection frequency |
 
 ---
 
@@ -480,16 +486,21 @@ train_rl_agent(predictions, episodes=100, disruptions_enabled=False)
 
 <div align="center">
 
-| Layer | Technology | Version | Usage |
-|-------|-----------|---------|-------|
-| Language | Python | 3.10+ | All backend logic |
-| ML | scikit-learn | Latest | RandomForest demand forecasting |
-| Numerics | NumPy | Latest | Q-table operations, metrics |
-| Data | Pandas | Latest | CSV ingestion, feature engineering |
-| Visualisation | Matplotlib | Latest | 7 static analysis plots |
-| Dashboard charts | Chart.js | 4.4.1 | Interactive browser charts |
-| Dashboard UI | Vanilla HTML/CSS/JS | — | Zero-dependency, works offline |
-| RL Algorithm | Custom Q-Learning | — | 20×20 tabular, epsilon-greedy |
+| Layer | Technology | Usage |
+|-------|-----------|-------|
+| Language | Python 3.10+ | All backend logic |
+| Backend | FastAPI + Uvicorn | REST API, SSE, WebSocket |
+| ML | scikit-learn | RandomForest demand forecasting |
+| RL | Custom Q-Learning | 20×20 tabular, epsilon-greedy |
+| Numerics | NumPy, Pandas | Q-table ops, data processing |
+| Visualisation | Matplotlib | 7 static analysis plots |
+| Dashboard | Chart.js 4.4.1 | Interactive browser charts |
+| Frontend | Vanilla HTML/CSS/JS | Shop UI + MAS Ops Dashboard |
+| Email | smtplib + Gmail SMTP | Supplier + customer notifications |
+| PDF | ReportLab | Invoice + procurement contract generation |
+| Notifications | plyer | OS-level desktop notifications |
+| Messaging | Telegram Bot API | Logistics dispatch alerts |
+| Logging | CSV (stdlib) | Warehouse transfer audit trail |
 
 </div>
 
@@ -500,7 +511,6 @@ train_rl_agent(predictions, episodes=100, disruptions_enabled=False)
 <div align="center">
 
 Developed by a **5-member engineering team** as part of a smart manufacturing optimisation research project.
-
 
 </div>
 
