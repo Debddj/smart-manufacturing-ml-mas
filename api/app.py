@@ -5,6 +5,7 @@ Streams live agent events via SSE to both frontends.
 from __future__ import annotations
 
 import asyncio
+import csv
 import json
 import queue
 import random
@@ -43,6 +44,7 @@ from agents.warehouse_agent          import WarehouseAgent
 from communication.message_bus       import MessageBus, MessageType, Priority
 from ucp.ucp_product_catalog         import ProductCatalog
 from warehouse.warehouse_network     import WarehouseNetwork
+from forecasting.demand_engine       import load_demand_data, aggregate_demand, predict_demand
 
 # ── App ────────────────────────────────────────────────────────────────────────
 app = FastAPI(title="Supply Chain MAS API")
@@ -176,6 +178,25 @@ def _run_order(order_id: str, items: List[dict]) -> None:
                        for it in items
                        if catalog.get(it["sku"]))
     total_demand = max(total_demand, 5.0)
+
+    # ── Demand logging ────────────────────────────────────────────────────────
+    # Append each ordered item (name + qty) with a timestamp to demand_log.csv.
+    # Creates the file with a header row if it does not already exist.
+    _demand_log_path = BASE_DIR / "demand_log.csv"
+    try:
+        _write_header = not _demand_log_path.exists()
+        with open(_demand_log_path, mode="a", newline="", encoding="utf-8") as _f:
+            _writer = csv.writer(_f)
+            if _write_header:
+                _writer.writerow(["timestamp", "item_name", "quantity"])
+            _log_ts = datetime.now().isoformat()
+            for _it in items:
+                _product = catalog.get(_it["sku"])
+                _item_name = _product.name if _product else _it["sku"]
+                _writer.writerow([_log_ts, _item_name, _it["qty"]])
+    except Exception as _exc:  # never crash the pipeline over logging
+        pass
+    # ─────────────────────────────────────────────────────────────────────────
 
     DELAY = 0.6   # seconds between agent steps for dramatic effect
 
@@ -765,6 +786,26 @@ def get_inventory():
     return result
 
 
+# ── Demand forecasting endpoints ──────────────────────────────────────────────
+
+@app.get("/api/demand/history")
+def get_demand_history_endpoint():
+    df = load_demand_data()
+    if "timestamp" in df.columns:
+        df["timestamp"] = df["timestamp"].astype(str)
+    return JSONResponse(df.to_dict(orient="records"))
+
+
+@app.get("/api/demand/aggregate")
+def get_demand_aggregate_endpoint():
+    return JSONResponse(aggregate_demand())
+
+
+@app.get("/api/demand/prediction")
+def get_demand_prediction_endpoint():
+    return JSONResponse(predict_demand())
+
+
 @app.get("/api/stream/{order_id}")
 async def stream_order(order_id: str, request: Request):
     """SSE stream for a specific order."""
@@ -864,4 +905,18 @@ async def serve_mas_ops_direct(request: Request):
 @app.get("/frontend/shop.html", response_class=HTMLResponse)
 async def serve_shop_direct():
     p = BASE_DIR / "frontend" / "shop.html"
+    return p.read_text(encoding="utf-8")
+
+
+@app.get("/demand", response_class=HTMLResponse)
+async def serve_demand_forecast():
+    """Serve the demand forecasting dashboard page."""
+    p = BASE_DIR / "frontend" / "demand_forecast.html"
+    return p.read_text(encoding="utf-8")
+
+
+@app.get("/frontend/demand_forecast.html", response_class=HTMLResponse)
+async def serve_demand_forecast_direct():
+    """Serve demand_forecast.html at its direct URL path."""
+    p = BASE_DIR / "frontend" / "demand_forecast.html"
     return p.read_text(encoding="utf-8")

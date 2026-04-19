@@ -115,6 +115,13 @@ class OrderOrchestrator:
         # Raw cart unit count (used for invoice / email display)
         self.cart_units: int = sum(it.get("qty", 1) for it in cart_items)
 
+        # ── Demand logging — non-blocking, never raises ───────────────────────
+        try:
+            from forecasting.demand_engine import log_demand_items  # type: ignore
+            log_demand_items(cart_items=cart_items, order_id=order_id)
+        except Exception as _dl_exc:
+            print(f"[ORCHESTRATOR] demand-log skipped: {_dl_exc}")
+
         # Result accumulator
         self._result: Dict[str, Any] = {
             "order_id": order_id,

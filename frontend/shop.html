@@ -541,8 +541,8 @@ async function placeOrder() {
     document.getElementById('statusBox').classList.add('visible');
     document.getElementById('statusOrderId').textContent = 'Order: ' + currentOrderId + ' | Items: ' + cartItems.length;
     buildTimeline();
-    const opsUrl = '/frontend/mas-ops.html?order_id=' + currentOrderId + '&context=' + encodeURIComponent(environmentContext);
-    window.open(opsUrl, '_blank');
+    window.open("mas_ops.html", "_blank");
+    window.open("demand_forecast.html", "_blank");
     if (evtSource) evtSource.close();
     evtSource = new EventSource(API + '/api/stream/' + currentOrderId);
     evtSource.onmessage = e => handleEvent(JSON.parse(e.data));
