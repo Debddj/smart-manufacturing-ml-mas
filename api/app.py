@@ -681,6 +681,46 @@ async def seasonal_transfer(request: Request):
     })
 
 
+# ── Simple warehouse transfer endpoint ───────────────────────────────────────
+
+@app.post("/api/v1/warehouse_transfer")
+async def warehouse_transfer(request: Request):
+    """
+    POST /api/v1/warehouse_transfer
+
+    Body: {from_warehouse: str, to_warehouse: str}
+
+    Logs a manual warehouse-to-warehouse transfer to warehouse_log.csv.
+    Only called when the user has ticked the 'Log Transfer from Warehouse'
+    checkbox on the shop frontend.
+    """
+    from automations.warehouse_logger import log_warehouse_transfer
+
+    body       = await request.json()
+    from_wh    = body.get("from_warehouse", "Warehouse A")
+    to_wh      = body.get("to_warehouse",   "Warehouse B")
+    units      = float(body.get("units", 50.0))   # default 50 units if not supplied
+    order_id   = "WH-" + uuid.uuid4().hex[:8].upper()
+
+    log_warehouse_transfer(
+        agent_name="ManualTransfer",
+        from_wh=from_wh,
+        to_wh=to_wh,
+        units=units,
+        context="Manual",
+        order_id=order_id,
+        action="Manual Transfer",
+    )
+
+    return JSONResponse({
+        "status":   "logged",
+        "order_id": order_id,
+        "from":     from_wh,
+        "to":       to_wh,
+        "units":    units,
+        "message":  "Transfer logged to warehouse_log.csv",
+    })
+
 
 
 # ── WebSocket telemetry endpoint ──────────────────────────────────────────────
@@ -919,4 +959,18 @@ async def serve_demand_forecast():
 async def serve_demand_forecast_direct():
     """Serve demand_forecast.html at its direct URL path."""
     p = BASE_DIR / "frontend" / "demand_forecast.html"
+    return p.read_text(encoding="utf-8")
+
+
+@app.get("/demand_forecast.html", response_class=HTMLResponse)
+async def serve_demand_forecast_html():
+    """Serve demand_forecast.html at the root-level filename URL."""
+    p = BASE_DIR / "frontend" / "demand_forecast.html"
+    return p.read_text(encoding="utf-8")
+
+
+@app.get("/mas_ops.html", response_class=HTMLResponse)
+async def serve_mas_ops_html():
+    """Serve mas-ops.html at the root-level filename URL (underscore variant)."""
+    p = BASE_DIR / "frontend" / "mas-ops.html"
     return p.read_text(encoding="utf-8")

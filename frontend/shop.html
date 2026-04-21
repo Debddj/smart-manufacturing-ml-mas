@@ -104,7 +104,7 @@ main{display:grid;grid-template-columns:1fr 390px;gap:0;height:calc(100vh - 63px
 .toast{position:fixed;bottom:2rem;right:2rem;padding:.65rem 1.1rem;background:var(--ink);border-radius:8px;color:var(--surface2);font-size:.78rem;font-weight:600;transform:translateY(100px);opacity:0;transition:all .3s;z-index:999;max-width:320px;}
 .toast.show{transform:translateY(0);opacity:1;}
 
-/* ── Warehouse + Context Selector ────────────────────────────────────── */
+/* ── Warehouse Transfer Section ──────────────────────────────────── */
 .wh-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.65rem;}
 .wh-section-title{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.55rem;display:flex;align-items:center;gap:.4rem;}
 .wh-section-title::before{content:'';width:3px;height:10px;background:var(--gold);border-radius:2px;}
@@ -112,24 +112,17 @@ main{display:grid;grid-template-columns:1fr 390px;gap:0;height:calc(100vh - 63px
 .wh-select{width:100%;padding:.45rem .65rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B4A5E' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .65rem center;transition:border-color .2s;outline:none;}
 .wh-select:focus{border-color:var(--ink);}
 .wh-lbl{font-size:.62rem;font-weight:600;color:var(--muted);margin-bottom:.2rem;display:block;}
-.date-input{width:100%;padding:.45rem .65rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:.78rem;cursor:pointer;outline:none;transition:border-color .2s;}
-.date-input:focus{border-color:var(--ink);}
-
-/* Season badges */
-.season-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.5rem;}
-.season-badge{border-radius:6px;padding:.42rem .65rem;font-size:.66rem;font-weight:600;text-align:center;transition:all .3s;}
-.season-badge.summer{background:var(--summer-dim);color:var(--summer);border:1px solid rgba(212,130,90,.3);}
-.season-badge.winter{background:var(--winter-dim);color:var(--winter);border:1px solid rgba(90,130,180,.3);}
-.season-badge-label{font-size:.58rem;font-weight:500;opacity:.75;display:block;margin-bottom:.1rem;}
-
-/* Seasonal transfer panel */
-.seasonal-transfer-btn{width:100%;margin-top:.55rem;padding:.55rem;border:1.5px solid var(--gold);border-radius:6px;background:var(--gold-glow);color:var(--gold2);font-weight:700;font-size:.74rem;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:.02em;}
-.seasonal-transfer-btn:hover{background:var(--gold);color:white;border-color:var(--gold);}
-.seasonal-transfer-btn:disabled{opacity:.4;cursor:not-allowed;}
-.transfer-result{margin-top:.5rem;padding:.55rem .75rem;border-radius:6px;font-size:.68rem;display:none;animation:slideIn .3s ease;}
+.checkbox-row{display:flex;align-items:center;gap:.5rem;cursor:pointer;}
+.checkbox-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--ink);cursor:pointer;}
+.checkbox-row span{font-size:.75rem;font-weight:600;color:var(--ink2);}
+.transfer-controls{margin-top:.6rem;display:none;animation:slideIn .25s ease;}
+.transfer-controls.visible{display:block;}
+.xfer-log-btn{width:100%;margin-top:.5rem;padding:.52rem;border:1.5px solid var(--gold);border-radius:6px;background:var(--gold-glow);color:var(--gold2);font-weight:700;font-size:.74rem;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:.02em;}
+.xfer-log-btn:hover{background:var(--gold);color:white;}
+.xfer-log-btn:disabled{opacity:.4;cursor:not-allowed;}
+.transfer-result{margin-top:.5rem;padding:.5rem .7rem;border-radius:6px;font-size:.68rem;display:none;animation:slideIn .3s ease;}
 .transfer-result.success{background:var(--sage-dim);border:1px solid rgba(107,142,127,.3);color:var(--sage);display:block;}
 .transfer-result.error{background:var(--red-dim);border:1px solid rgba(184,92,92,.3);color:var(--red);display:block;}
-
 .context-hint{font-size:.6rem;color:var(--muted2);margin-top:.3rem;font-style:italic;}
 .divider{height:1px;background:var(--border);margin:.5rem 0;}
 </style>
@@ -186,52 +179,40 @@ main{display:grid;grid-template-columns:1fr 390px;gap:0;height:calc(100vh - 63px
         </div>
       </div>
 
-      <!-- ── Warehouse & Season Control ────────────────────────────────── -->
+      <!-- ── Warehouse Transfer Control ──────────────────────────────── -->
       <div class="wh-section">
-        <div class="wh-section-title">Warehouse &amp; Seasonal Control</div>
+        <div class="wh-section-title">Warehouse Transfer</div>
 
-        <div class="wh-row">
-          <div>
-            <label class="wh-lbl" for="wh-context-select">Warehouse Context</label>
-            <select id="wh-context-select" class="wh-select" onchange="onWarehouseChange()">
-              <option value="A">Warehouse A</option>
-              <option value="B">Warehouse B</option>
-            </select>
+        <!-- Checkbox toggle -->
+        <label class="checkbox-row" for="wh-transfer-check">
+          <input type="checkbox" id="wh-transfer-check" onchange="onTransferCheckChange()"/>
+          <span>Log Transfer from Warehouse</span>
+        </label>
+
+        <!-- From / To selects — shown only when checkbox is ticked -->
+        <div class="transfer-controls" id="transfer-controls">
+          <div class="wh-row" style="margin-top:.6rem;">
+            <div>
+              <label class="wh-lbl" for="wh-from">From</label>
+              <select id="wh-from" class="wh-select" onchange="onFromWarehouseChange()">
+                <option value="Warehouse A">Warehouse A</option>
+                <option value="Warehouse B">Warehouse B</option>
+              </select>
+            </div>
+            <div>
+              <label class="wh-lbl" for="wh-to">To</label>
+              <select id="wh-to" class="wh-select">
+                <option value="Warehouse B">Warehouse B</option>
+                <option value="Warehouse A">Warehouse A</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label class="wh-lbl" for="simulation-date">Simulation Date</label>
-            <input type="date" id="simulation-date" class="date-input" value="2026-03-12" onchange="onDateChange()"/>
-          </div>
+          <button id="xfer-log-btn" class="xfer-log-btn" onclick="logWarehouseTransfer()">
+            🔄 Log Transfer to CSV
+          </button>
+          <div class="transfer-result" id="transfer-result"></div>
         </div>
 
-        <!-- Season status display -->
-        <div class="season-grid" id="seasonGrid">
-          <div class="season-badge summer" id="badge-A">
-            <span class="season-badge-label">Warehouse A</span>
-            <span id="season-A-text">☀️ Summer</span>
-          </div>
-          <div class="season-badge winter" id="badge-B">
-            <span class="season-badge-label">Warehouse B</span>
-            <span id="season-B-text">❄️ Winter</span>
-          </div>
-        </div>
-
-        <div class="context-hint" id="transfer-hint" style="margin-top:.4rem;"></div>
-
-        <button id="seasonal-xfer-btn" class="seasonal-transfer-btn" onclick="triggerSeasonalTransfer()">
-          🔄 Log Seasonal Transfer to CSV
-        </button>
-        <div class="transfer-result" id="transfer-result"></div>
-
-        <div class="divider"></div>
-
-        <!-- Order routing context (derived from warehouse selection) -->
-        <label class="wh-lbl" for="environment-context">Order Routing Context</label>
-        <select id="environment-context" class="wh-select" style="margin-top:.2rem;">
-          <option value="Summer" selected>Summer (Default Routing — 60% from Wh B)</option>
-          <option value="Winter">Winter (Cold Storage Priority — 90% from Wh B)</option>
-        </select>
-        <div class="context-hint">Affects inventory routing split between warehouses.</div>
       </div>
 
       <button class="checkout-btn" id="orderBtn" onclick="placeOrder()">Proceed to Checkout</button>
@@ -250,106 +231,60 @@ main{display:grid;grid-template-columns:1fr 390px;gap:0;height:calc(100vh - 63px
 const API = '';
 let cart = {}, products = {}, currentOrderId = null, evtSource = null;
 
-// ── Season rules ─────────────────────────────────────────────────────────────
-// Wh A: Summer = Jan(1)–Jul(7), Winter = Aug(8)–Dec(12)
-// Wh B: Summer = Aug(8)–Dec(12), Winter = Jan(1)–Jul(7)
-function getSeasonA(month) { return month >= 1 && month <= 7 ? 'Summer' : 'Winter'; }
-function getSeasonB(month) { return month >= 8 && month <= 12 ? 'Summer' : 'Winter'; }
-
-function getSeasonEmoji(s) { return s === 'Summer' ? '☀️' : '❄️'; }
-
-function updateSeasonDisplay() {
-  const dateVal = document.getElementById('simulation-date').value;
-  const whCtx   = document.getElementById('wh-context-select').value;
-  if (!dateVal) return;
-
-  const d = new Date(dateVal);
-  const month = d.getMonth() + 1; // 1-indexed
-
-  const sA = getSeasonA(month);
-  const sB = getSeasonB(month);
-
-  // Update badges
-  const badgeA = document.getElementById('badge-A');
-  const badgeB = document.getElementById('badge-B');
-  const textA  = document.getElementById('season-A-text');
-  const textB  = document.getElementById('season-B-text');
-
-  badgeA.className = 'season-badge ' + sA.toLowerCase();
-  badgeB.className = 'season-badge ' + sB.toLowerCase();
-  textA.textContent = getSeasonEmoji(sA) + ' ' + sA;
-  textB.textContent = getSeasonEmoji(sB) + ' ' + sB;
-
-  // Hint about transfer direction
-  const hint = document.getElementById('transfer-hint');
+// ── Warehouse Transfer ────────────────────────────────────────────────────────
+function onTransferCheckChange() {
+  const checked = document.getElementById('wh-transfer-check').checked;
+  const controls = document.getElementById('transfer-controls');
+  controls.classList.toggle('visible', checked);
+  // Clear any previous result when toggling
   const resultEl = document.getElementById('transfer-result');
-  resultEl.className = 'transfer-result'; // hide previous result
-
-  if (whCtx === 'A') {
-    const needsSeason = sA;
-    // Wh B has opposite season stock
-    if (needsSeason === 'Summer') {
-      hint.textContent = `📦 Wh A needs ${needsSeason} stock → Will receive transfer from Warehouse B`;
-    } else {
-      hint.textContent = `🧊 Wh A needs ${needsSeason} stock → Will receive transfer from Warehouse B`;
-    }
-  } else {
-    const needsSeason = sB;
-    if (needsSeason === 'Summer') {
-      hint.textContent = `📦 Wh B needs ${needsSeason} stock → Will receive transfer from Warehouse A`;
-    } else {
-      hint.textContent = `🧊 Wh B needs ${needsSeason} stock → Will receive transfer from Warehouse A`;
-    }
-  }
-
-  // Auto-update the order routing context dropdown to match active warehouse's season
-  const activeSeason = whCtx === 'A' ? sA : sB;
-  document.getElementById('environment-context').value = activeSeason;
+  resultEl.className = 'transfer-result';
+  resultEl.textContent = '';
 }
 
-function onWarehouseChange() { updateSeasonDisplay(); }
-function onDateChange()      { updateSeasonDisplay(); }
+// Keep From and To in sync so they can't be the same
+function onFromWarehouseChange() {
+  const fromVal = document.getElementById('wh-from').value;
+  const toSel   = document.getElementById('wh-to');
+  toSel.innerHTML = '';
+  ['Warehouse A', 'Warehouse B'].filter(w => w !== fromVal).forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w; opt.textContent = w;
+    toSel.appendChild(opt);
+  });
+}
 
-async function triggerSeasonalTransfer() {
-  const btn     = document.getElementById('seasonal-xfer-btn');
-  const resultEl= document.getElementById('transfer-result');
-  const dateVal = document.getElementById('simulation-date').value;
-  const whCtx   = document.getElementById('wh-context-select').value;
+async function logWarehouseTransfer() {
+  const checkbox = document.getElementById('wh-transfer-check');
+  if (!checkbox.checked) return; // guard: only log when checkbox is ticked
 
-  if (!dateVal) {
-    showToast('Please select a simulation date first.');
-    return;
-  }
+  const btn      = document.getElementById('xfer-log-btn');
+  const resultEl = document.getElementById('transfer-result');
+  const fromWh   = document.getElementById('wh-from').value;
+  const toWh     = document.getElementById('wh-to').value;
 
   btn.disabled = true;
-  btn.textContent = '⏳ Logging transfer…';
+  btn.textContent = '⏳ Logging…';
   resultEl.className = 'transfer-result';
 
   try {
-    const r = await fetch(API + '/api/v1/seasonal_transfer', {
+    const r = await fetch(API + '/api/v1/warehouse_transfer', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ warehouse_context: whCtx, date: dateVal })
+      body: JSON.stringify({ from_warehouse: fromWh, to_warehouse: toWh })
     });
     const data = await r.json();
-
     if (!r.ok) throw new Error(data.error || 'API error');
-
-    const t = data.transfers?.[0];
-    const msg = t
-      ? `✅ Logged: ${t.from} → ${t.to} | ${t.units} units | ${t.season} | ID: ${data.order_id}`
-      : `✅ Transfer logged: ${data.order_id}`;
-
-    resultEl.textContent = msg;
+    resultEl.textContent = `✅ Logged: ${data.from} → ${data.to} | ${data.units} units | ID: ${data.order_id}`;
     resultEl.className = 'transfer-result success';
-    showToast('Seasonal transfer logged to warehouse_log.csv ✓');
+    showToast('Transfer logged to warehouse_log.csv ✓');
   } catch(e) {
     resultEl.textContent = `⚠️ ${e.message}`;
     resultEl.className = 'transfer-result error';
     showToast('Transfer logging failed: ' + e.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = '🔄 Log Seasonal Transfer to CSV';
+    btn.textContent = '🔄 Log Transfer to CSV';
   }
 }
 
@@ -525,7 +460,9 @@ async function placeOrder() {
 
   // Collect cart items with quantity
   const cartItems = Object.entries(cart).map(([sku, qty]) => ({sku, qty}));
-  const environmentContext = document.getElementById('environment-context').value;
+  // Auto-detect season from current month (Jan–Jul = Summer, Aug–Dec = Winter)
+  const month = new Date().getMonth() + 1;
+  const environmentContext = month <= 7 ? 'Summer' : 'Winter';
   const customerId = 'CUST-' + Math.random().toString(36).substr(2, 6).toUpperCase();
   const payload = { cart_items: cartItems, environment_context: environmentContext, customer_id: customerId };
 
@@ -541,8 +478,8 @@ async function placeOrder() {
     document.getElementById('statusBox').classList.add('visible');
     document.getElementById('statusOrderId').textContent = 'Order: ' + currentOrderId + ' | Items: ' + cartItems.length;
     buildTimeline();
-    window.open("mas_ops.html", "_blank");
-    window.open("demand_forecast.html", "_blank");
+    window.open("/mas_ops.html", "_blank");
+    window.open("/demand_forecast.html", "_blank");
     if (evtSource) evtSource.close();
     evtSource = new EventSource(API + '/api/stream/' + currentOrderId);
     evtSource.onmessage = e => handleEvent(JSON.parse(e.data));
@@ -617,7 +554,6 @@ function showToast(msg) {
 // ── Init ─────────────────────────────────────────────────────────────────────
 loadProducts();
 setInterval(loadProducts, 30000);
-updateSeasonDisplay(); // show initial season state
 </script>
 </body>
 </html>

@@ -1,15 +1,54 @@
 import os
+import csv
+import datetime
+from pathlib import Path
 import pandas as pd
 
-def load_demand_data():
-    file_path = os.path.join(os.path.dirname(__file__), "..", "demand_log.csv")
-    columns = ["timestamp", "item_name", "quantity"]
-    
-    if not os.path.exists(file_path):
-        return pd.DataFrame(columns=columns)
-        
+_DEMAND_LOG = Path(__file__).parent.parent / "demand_log.csv"
+
+
+def log_demand_items(cart_items: list, order_id: str = "") -> None:
+    """
+    Append each cart item to demand_log.csv.
+    Creates the file with a header row if it does not already exist.
+
+    Args:
+        cart_items: list of {"sku": str, "qty": int} dicts
+        order_id:   order identifier (optional — stored for traceability)
+    """
     try:
-        df = pd.read_csv(file_path)
+        # Lazy import to avoid circular dependency
+        from ucp.ucp_product_catalog import ProductCatalog
+        _catalog = ProductCatalog()
+    except Exception:
+        _catalog = None
+
+    write_header = not _DEMAND_LOG.exists()
+    ts = datetime.datetime.now().isoformat()
+
+    with open(_DEMAND_LOG, mode="a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        if write_header:
+            writer.writerow(["timestamp", "item_name", "quantity", "order_id"])
+        for item in cart_items:
+            sku = item.get("sku", "UNKNOWN")
+            qty = item.get("qty", 1)
+            if _catalog:
+                product = _catalog.get(sku)
+                name = product.name if product else sku
+            else:
+                name = sku
+            writer.writerow([ts, name, qty, order_id])
+
+
+def load_demand_data():
+    columns = ["timestamp", "item_name", "quantity", "order_id"]
+
+    if not _DEMAND_LOG.exists():
+        return pd.DataFrame(columns=columns)
+
+    try:
+        df = pd.read_csv(_DEMAND_LOG)
         if "timestamp" in df.columns:
             df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
         return df
