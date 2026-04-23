@@ -97,6 +97,14 @@ class MessageType:
     TRANSIT_STATUS    = "transit_status"
     DELIVERY_COMPLETE = "delivery_complete"
 
+    # Multi-store Retail Management
+    SALE_RECORDED     = "sale_recorded"
+    STOCK_ALERT       = "stock_alert"
+    RESTOCK_REQUEST   = "restock_request"
+    STORE_CREATED     = "store_created"
+    TRANSFER_REQUEST  = "transfer_request"
+    TRANSFER_APPROVED = "transfer_approved"
+
     # System-level
     SYSTEM_CHECKPOINT = "system_checkpoint"
     SLA_BREACH        = "sla_breach"
@@ -244,7 +252,7 @@ class MessageBus:
             handlers = self._subscriptions.get(msg.type, [])
             for handler in handlers:
                 try:
-                    handler(msg)
+                    handler(msg.payload)
                 except Exception as exc:
                     self._handler_errors += 1
                     print(f"[MessageBus] Handler error — type={msg.type} "

@@ -365,7 +365,7 @@ class OrderOrchestrator:
 
             logistics = LogisticsAgent()
             transport = logistics.act(units)
-            destination = "Distribution Hub — North Zone"
+            destination = "Distribution Hub — Kolkata Zone"
 
             # ── Automation 4: Telegram Alert ──────────────────────────────────
             tg = TelegramAlert()

@@ -49,7 +49,7 @@ class TelegramAlert:
         Args:
             order_id:    Unique order identifier.
             units:       Number of units being dispatched.
-            destination: Delivery destination (e.g. "Distribution Hub North").
+            destination: Delivery destination (e.g. "Distribution Hub Kolkata").
 
         Returns:
             True if the message was sent successfully, False otherwise.

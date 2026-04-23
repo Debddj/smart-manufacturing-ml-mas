@@ -41,10 +41,29 @@ from agents.last_mile_agent          import LastMileAgent
 from agents.logistics_agent          import LogisticsAgent
 from agents.supplier_agent           import SupplierAgent
 from agents.warehouse_agent          import WarehouseAgent
+from agents.store_inventory_agent    import StoreInventoryAgent
+from agents.sales_sync_agent         import SalesSyncAgent
+from agents.regional_analytics_agent import RegionalAnalyticsAgent
+from agents.inter_store_agent        import InterStoreAgent
+from agents.warehouse_balancer_agent import WarehouseBalancerAgent
 from communication.message_bus       import MessageBus, MessageType, Priority
 from ucp.ucp_product_catalog         import ProductCatalog
 from warehouse.warehouse_network     import WarehouseNetwork
 from forecasting.demand_engine       import load_demand_data, aggregate_demand, predict_demand
+
+# ── Database & seed ────────────────────────────────────────────────────────────
+from db.database import init_db
+from db.seed import seed_all
+
+# ── New routers (multi-store management) ───────────────────────────────────────
+from api.auth_router      import router as auth_router
+from api.store_router     import router as store_router
+from api.sales_router     import router as sales_router
+from api.regional_router  import router as regional_router
+from api.admin_router     import router as admin_router
+from api.transfer_router  import router as transfer_router
+from api.warehouse_router import router as warehouse_router
+from api.websocket_hub    import router as ws_router, hub as ws_hub
 
 # ── App ────────────────────────────────────────────────────────────────────────
 app = FastAPI(title="Supply Chain MAS API")
@@ -52,6 +71,45 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
+
+# Mount all new routers
+app.include_router(auth_router)
+app.include_router(store_router)
+app.include_router(sales_router)
+app.include_router(regional_router)
+app.include_router(admin_router)
+app.include_router(transfer_router)
+app.include_router(warehouse_router)
+app.include_router(ws_router)
+
+# ── Startup: init DB & seed ────────────────────────────────────────────────────
+@app.on_event("startup")
+def on_startup():
+    """Initialize database tables and seed default data on first run."""
+    try:
+        init_db()
+        seed_all()
+        print("[APP] Database initialized and seeded.")
+    except Exception as exc:
+        print(f"[APP] Database init warning: {exc}")
+
+    # Wire up WebSocket broadcast and Agents for sales_router
+    from api.sales_router import set_broadcast_fn, set_sales_sync_agent
+    from api.transfer_router import set_inter_store_agent
+    set_broadcast_fn(ws_hub.broadcast)
+    set_sales_sync_agent(sales_sync_agent)
+    set_inter_store_agent(inter_store_agent)
+    
+    def on_simulate_fulfillment(payload: dict):
+        order_id = payload.get("order_id", "SIM-RESTOCK")
+        items = payload.get("items", [])
+        print(f"[SIMULATE_FULFILLMENT] Received: order_id={order_id}, items={items}")
+        if items:
+            import threading
+            print(f"[SIMULATE_FULFILLMENT] Starting _run_order for {order_id}")
+            threading.Thread(target=_run_order, args=(order_id, items), daemon=True).start()
+    
+    global_message_bus.subscribe("SIMULATE_FULFILLMENT", on_simulate_fulfillment)
 
 BASE_DIR = Path(__file__).parent.parent
 
@@ -69,6 +127,29 @@ agent_states: Dict[str, dict] = {        # live agent status cards
     "LogisticsAgent":          {"status": "IDLE", "msgs": 0, "last": ""},
     "LastMileDeliveryAgent":   {"status": "IDLE", "msgs": 0, "last": ""},
 }
+
+# ── Multi-Store Agents ─────────────────────────────────────────────────────────
+global_message_bus = MessageBus()
+store_inventory_agent = StoreInventoryAgent(global_message_bus)
+sales_sync_agent = SalesSyncAgent(global_message_bus)
+regional_analytics_agent = RegionalAnalyticsAgent(global_message_bus)
+inter_store_agent = InterStoreAgent(global_message_bus)
+warehouse_balancer_agent = WarehouseBalancerAgent(global_message_bus)
+
+# Start background flush for message bus
+def _flush_bus_loop():
+    import logging
+    _bus_logger = logging.getLogger("MessageBusFlush")
+    while True:
+        try:
+            delivered = global_message_bus.flush()
+            if delivered > 0:
+                _bus_logger.info(f"[BUS] Flushed {delivered} messages.")
+        except Exception as exc:
+            _bus_logger.error(f"[BUS] Flush error: {exc}", exc_info=True)
+        time.sleep(0.5)
+
+threading.Thread(target=_flush_bus_loop, daemon=True).start()
 
 # Per-order SSE queues  {order_id: [queue, …]}
 _order_listeners: Dict[str, List[queue.Queue]] = defaultdict(list)
@@ -172,6 +253,15 @@ def _run_order(order_id: str, items: List[dict]) -> None:
     global step_counter
     step_counter += 1
     step = step_counter
+
+    # Ensure the order is registered (handles simulation-triggered orders)
+    if order_id not in orders_db:
+        orders_db[order_id] = {
+            "order_id": order_id,
+            "items":    items,
+            "status":   "PROCESSING",
+            "created":  datetime.now().isoformat(),
+        }
 
     # Compute total demand from cart items
     total_demand = sum(it["qty"] * catalog.get(it["sku"]).base_demand * 0.1

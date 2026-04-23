@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.dashboard { padding: 2rem; font-family: 'Inter', sans-serif; color: #e2e8f0; min-height: calc(100vh - 60px); }
+.dash-loading { display: flex; align-items: center; justify-content: center; height: 50vh; color: #8892b0; font-size: 1.1rem; }
+.dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.dash-header h1 { font-size: 1.8rem; font-weight: 700; color: #ccd6f6; }
+.dash-subtitle { color: #5a6380; font-size: 0.85rem; margin-top: 0.3rem; }
+.ws-indicator { display: flex; align-items: center; gap: 0.4rem; color: #5a6380; font-size: 0.8rem; }
+.ws-dot { width: 8px; height: 8px; border-radius: 50%; background: #5a6380; }
+.ws-dot.connected { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.5); }
+.stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+.stat-card { background: rgba(26, 26, 62, 0.6); border: 1px solid rgba(100, 108, 255, 0.1); border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, border-color 0.2s; }
+.stat-card:hover { transform: translateY(-2px); border-color: rgba(100, 108, 255, 0.3); }
+.stat-card.purple { border-left: 3px solid #a78bfa; }
+.stat-card.blue { border-left: 3px solid #60a5fa; }
+.stat-card.green { border-left: 3px solid #4ade80; }
+.stat-card.red { border-left: 3px solid #ff6b6b; }
+.stat-card.gray { border-left: 3px solid #5a6380; }
+.stat-label { color: #8892b0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+.stat-value { font-size: 2rem; font-weight: 700; color: #ccd6f6; }
+.stat-detail { color: #5a6380; font-size: 0.75rem; margin-top: 0.3rem; }
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+.dash-panel { background: rgba(26, 26, 62, 0.6); border: 1px solid rgba(100, 108, 255, 0.1); border-radius: 16px; padding: 1.5rem; }
+.dash-panel h2 { font-size: 1rem; font-weight: 600; color: #ccd6f6; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(100, 108, 255, 0.1); }
+.dash-side { display: flex; flex-direction: column; gap: 1.2rem; }
+.dash-panel.small { padding: 1.2rem; }
+.dash-table { width: 100%; border-collapse: collapse; }
+.dash-table th { color: #8892b0; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid rgba(100, 108, 255, 0.1); }
+.dash-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid rgba(100, 108, 255, 0.05); font-size: 0.85rem; color: #ccd6f6; }
+.dash-table tr:hover td { background: rgba(100, 108, 255, 0.04); }
+.mono { font-family: 'Courier New', monospace; font-size: 0.78rem; color: #8892b0; }
+.num { font-variant-numeric: tabular-nums; font-weight: 600; }
+.status-badge { padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+.status-badge.ok { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
+.status-badge.warning { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+.status-badge.critical { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; }
+.empty-state { color: #5a6380; font-size: 0.85rem; text-align: center; padding: 1rem; }
+.alert-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.6rem; border-radius: 8px; margin-bottom: 0.4rem; font-size: 0.8rem; }
+.alert-item.low_stock { background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2); }
+.alert-item.out_of_stock { background: rgba(255, 107, 107, 0.08); border: 1px solid rgba(255, 107, 107, 0.2); }
+.alert-item.high_demand { background: rgba(96, 165, 250, 0.08); border: 1px solid rgba(96, 165, 250, 0.2); }
+.alert-type { font-weight: 600; font-size: 0.7rem; text-transform: uppercase; color: #fbbf24; min-width: 70px; }
+.alert-item.out_of_stock .alert-type { color: #ff6b6b; }
+.alert-product { color: #ccd6f6; flex: 1; }
+.alert-level { color: #8892b0; font-size: 0.75rem; }
+.staff-item { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(100, 108, 255, 0.05); }
+.staff-name { color: #ccd6f6; font-size: 0.85rem; }
+.staff-role { color: #8892b0; font-size: 0.75rem; text-transform: capitalize; }
+.top-product { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; }
+.tp-rank { color: #646cff; font-weight: 700; font-size: 0.8rem; min-width: 24px; }
+.tp-name { flex: 1; color: #ccd6f6; font-size: 0.85rem; }
+.tp-qty { color: #8892b0; font-size: 0.8rem; }
