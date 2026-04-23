@@ -14,43 +14,53 @@ export default function StoreDashboard() {
   const [loading, setLoading] = useState(true);
   const { lastMessage, isConnected } = useWebSocket(user?.store_id);
 
-  useEffect(() => { if (user?.store_id) loadData(); }, [user]);
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [storeRes, invRes, salesRes, alertRes, staffRes] = await Promise.all([
+          api.get(`/api/stores/${user.store_id}`),
+          api.get(`/api/stores/${user.store_id}/inventory`),
+          api.get(`/api/stores/${user.store_id}/sales/summary?days=7`),
+          api.get(`/api/stores/${user.store_id}/alerts?resolved=false`),
+          api.get(`/api/stores/${user.store_id}/staff`),
+        ]);
+        setStore(storeRes.data);
+        setInventory(invRes.data);
+        setSales(salesRes.data);
+        setAlerts(alertRes.data);
+        setStaff(staffRes.data);
+      } catch (err) {
+        console.error('Failed to load store data:', err);
+      } finally { setLoading(false); }
+    };
+
+    if (user?.store_id) {
+      setTimeout(loadData, 0);
+    }
+  }, [user]);
 
   useEffect(() => {
+    const loadAlerts = async () => {
+      try {
+        const res = await api.get(`/api/stores/${user?.store_id}/alerts?resolved=false`);
+        setAlerts(res.data);
+      } catch {
+        // ignore
+      }
+    };
+
     if (lastMessage?.type === 'inventory_update' && lastMessage.store_id === user?.store_id) {
-      setInventory(prev => prev.map(inv =>
-        inv.product_id === lastMessage.product_id ? { ...inv, quantity: lastMessage.new_quantity } : inv
-      ));
-      if (lastMessage.alert) loadAlerts();
+      setTimeout(() => {
+        setInventory(prev => prev.map(inv =>
+          inv.product_id === lastMessage.product_id ? { ...inv, quantity: lastMessage.new_quantity } : inv
+        ));
+        if (lastMessage.alert) {
+          loadAlerts();
+        }
+      }, 0);
     }
-  }, [lastMessage]);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [storeRes, invRes, salesRes, alertRes, staffRes] = await Promise.all([
-        api.get(`/api/stores/${user.store_id}`),
-        api.get(`/api/stores/${user.store_id}/inventory`),
-        api.get(`/api/stores/${user.store_id}/sales/summary?days=7`),
-        api.get(`/api/stores/${user.store_id}/alerts?resolved=false`),
-        api.get(`/api/stores/${user.store_id}/staff`),
-      ]);
-      setStore(storeRes.data);
-      setInventory(invRes.data);
-      setSales(salesRes.data);
-      setAlerts(alertRes.data);
-      setStaff(staffRes.data);
-    } catch (err) {
-      console.error('Failed to load store data:', err);
-    } finally { setLoading(false); }
-  };
-
-  const loadAlerts = async () => {
-    try {
-      const res = await api.get(`/api/stores/${user.store_id}/alerts?resolved=false`);
-      setAlerts(res.data);
-    } catch (e) {}
-  };
+  }, [lastMessage, user?.store_id]);
 
   if (loading) return <div className="dash-loading">Loading dashboard...</div>;
 
@@ -83,7 +93,7 @@ export default function StoreDashboard() {
         </div>
         <div className="stat-card green">
           <div className="stat-label">Revenue (7d)</div>
-          <div className="stat-value">${sales?.total_revenue?.toFixed(0) || 0}</div>
+          <div className="stat-value">₹{sales?.total_revenue?.toFixed(0) || 0}</div>
           <div className="stat-detail">{sales?.period_days}-day period</div>
         </div>
         <div className={`stat-card ${alerts.length > 0 ? 'red' : 'gray'}`}>

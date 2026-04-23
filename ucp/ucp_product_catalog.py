@@ -67,7 +67,7 @@ class Product:
             "name":        self.name,
             "description": self.description,
             "category":    self.category,
-            "price":       {"amount": self.unit_price, "currency": "USD"},
+            "price":       {"amount": self.unit_price, "currency": "INR"},
             "inventory":   {"available": int(self.current_inventory), "unit": "units"},
             "fulfillment": {
                 "lead_time_days": self.lead_time,

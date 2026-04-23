@@ -11,24 +11,28 @@ export default function RegionalDashboard() {
   const [underperforming, setUnderperforming] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadData(); }, [user]);
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [ovRes, stRes, tpRes, upRes] = await Promise.all([
+          api.get(`/api/regions/${user.region_id}/overview?days=7`),
+          api.get(`/api/regions/${user.region_id}/stores?days=7`),
+          api.get(`/api/regions/${user.region_id}/products/top?days=7&limit=5`),
+          api.get(`/api/regions/${user.region_id}/stores/underperforming?days=7`),
+        ]);
+        setOverview(ovRes.data);
+        setStores(stRes.data);
+        setTopProducts(tpRes.data);
+        setUnderperforming(upRes.data);
+      } catch (err) { console.error(err); }
+      finally { setLoading(false); }
+    };
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [ovRes, stRes, tpRes, upRes] = await Promise.all([
-        api.get(`/api/regions/${user.region_id}/overview?days=7`),
-        api.get(`/api/regions/${user.region_id}/stores?days=7`),
-        api.get(`/api/regions/${user.region_id}/products/top?days=7&limit=5`),
-        api.get(`/api/regions/${user.region_id}/stores/underperforming?days=7`),
-      ]);
-      setOverview(ovRes.data);
-      setStores(stRes.data);
-      setTopProducts(tpRes.data);
-      setUnderperforming(upRes.data);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
+    if (user?.region_id) {
+      setTimeout(loadData, 0);
+    }
+  }, [user]);
 
   if (loading) return <div className="dash-loading">Loading regional data...</div>;
 
@@ -54,7 +58,7 @@ export default function RegionalDashboard() {
         </div>
         <div className="stat-card green">
           <div className="stat-label">Revenue</div>
-          <div className="stat-value">${overview?.total_revenue?.toFixed(0) || 0}</div>
+          <div className="stat-value">₹{overview?.total_revenue?.toFixed(0) || 0}</div>
           <div className="stat-detail">{overview?.period_days}-day total</div>
         </div>
         <div className={`stat-card ${overview?.active_alerts > 0 ? 'red' : 'gray'}`}>
@@ -76,7 +80,7 @@ export default function RegionalDashboard() {
                   <td className="mono">{s.store_code}</td>
                   <td className="num">{s.total_inventory.toFixed(0)}</td>
                   <td className="num">{s.units_sold.toFixed(0)}</td>
-                  <td className="num">${s.revenue.toFixed(0)}</td>
+                  <td className="num">₹{s.revenue.toFixed(0)}</td>
                   <td><span className={`status-badge ${s.active_alerts > 0 ? 'warning' : 'ok'}`}>{s.active_alerts}</span></td>
                 </tr>
               ))}
