@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 import './Dashboard.css';
 
 export default function WarehouseDashboard() {
-  const { user } = useAuth();
+  // user auth context not needed here currently
+  useAuth();
   const [warehouses, setWarehouses] = useState([]);
   const [imbalance, setImbalance] = useState(null);
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [whRes, imbRes, trRes] = await Promise.all([
@@ -25,7 +24,9 @@ export default function WarehouseDashboard() {
       setTransfers(trRes.data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, []);
+
+  useEffect(() => { setTimeout(loadData, 0); }, [loadData]);
 
   const triggerTransfer = async (fromId, toId) => {
     try {

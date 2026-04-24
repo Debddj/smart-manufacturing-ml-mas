@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 import './Dashboard.css';
@@ -12,9 +12,7 @@ export default function TransfersPage() {
   const [transferForm, setTransferForm] = useState({ from_store_id: '', product_id: '', quantity: '' });
   const [products, setProducts] = useState([]);
 
-  useEffect(() => { loadData(); }, [user]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [nearbyRes, transferRes, invRes] = await Promise.all([
@@ -27,7 +25,9 @@ export default function TransfersPage() {
       setProducts(invRes.data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [user]);
+
+  useEffect(() => { setTimeout(loadData, 0); }, [loadData]);
 
   const requestTransfer = async () => {
     try {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function useWebSocket(storeId) {
   const [lastMessage, setLastMessage] = useState(null);
@@ -6,39 +6,40 @@ export default function useWebSocket(storeId) {
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
 
-  const connect = useCallback(() => {
-    const url = `ws://localhost:8000/ws/inventory${storeId ? `?store_id=${storeId}` : ''}`;
-    const ws = new WebSocket(url);
-
-    ws.onopen = () => {
-      setIsConnected(true);
-      console.log('[WS] Connected to inventory updates');
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setLastMessage(data);
-      } catch (e) {
-        console.warn('[WS] Non-JSON message:', event.data);
-      }
-    };
-
-    ws.onclose = () => {
-      setIsConnected(false);
-      console.log('[WS] Disconnected, reconnecting in 3s...');
-      reconnectTimer.current = setTimeout(connect, 3000);
-    };
-
-    ws.onerror = () => {
-      ws.close();
-    };
-
-    wsRef.current = ws;
-  }, [storeId]);
-
   useEffect(() => {
+    function connect() {
+      const url = `ws://localhost:8000/ws/inventory${storeId ? `?store_id=${storeId}` : ''}`;
+      const ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        setIsConnected(true);
+        console.log('[WS] Connected to inventory updates');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setLastMessage(data);
+        } catch {
+          console.warn('[WS] Non-JSON message:', event.data);
+        }
+      };
+
+      ws.onclose = () => {
+        setIsConnected(false);
+        console.log('[WS] Disconnected, reconnecting in 3s...');
+        reconnectTimer.current = setTimeout(connect, 3000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+
+      wsRef.current = ws;
+    }
+
     connect();
+
     // Keep-alive ping every 30s
     const ping = setInterval(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -51,7 +52,7 @@ export default function useWebSocket(storeId) {
       clearTimeout(reconnectTimer.current);
       wsRef.current?.close();
     };
-  }, [connect]);
+  }, [storeId]);
 
   return { lastMessage, isConnected };
 }
