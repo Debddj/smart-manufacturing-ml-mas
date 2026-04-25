@@ -8,7 +8,8 @@ export default function Navbar() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/shop', label: 'Shop' }
+    { path: '/shop', label: 'Shop' },
+    { path: '/mas-ops', label: 'MAS Ops', external: true }
   ];
   
   if (user) {
@@ -33,13 +34,25 @@ export default function Navbar() {
       </div>
       <div className="navbar-links">
         {navItems.map((item) => (
-          <button
-            key={item.path}
-            className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-            onClick={() => navigate(item.path)}
-          >
-            {item.label}
-          </button>
+          item.external ? (
+            <a
+              key={item.path}
+              className="nav-link external"
+              href={item.path}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {item.label}
+            </a>
+          ) : (
+            <button
+              key={item.path}
+              className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+              onClick={() => navigate(item.path)}
+            >
+              {item.label}
+            </button>
+          )
         ))}
       </div>
       <div className="navbar-user">

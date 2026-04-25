@@ -14,6 +14,30 @@ export default defineConfig({
         target: 'ws://localhost:8000',
         ws: true,
       },
+      '/mas-ops': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/dashboard': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/frontend': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/demand': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/demand_forecast.html': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/mas_ops.html': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
 })

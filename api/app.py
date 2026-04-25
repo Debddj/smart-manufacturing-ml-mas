@@ -5,7 +5,6 @@ Streams live agent events via SSE to both frontends.
 from __future__ import annotations
 
 import asyncio
-import csv
 import json
 import queue
 import random
@@ -270,21 +269,12 @@ def _run_order(order_id: str, items: List[dict]) -> None:
     total_demand = max(total_demand, 5.0)
 
     # ── Demand logging ────────────────────────────────────────────────────────
-    # Append each ordered item (name + qty) with a timestamp to demand_log.csv.
-    # Creates the file with a header row if it does not already exist.
-    _demand_log_path = BASE_DIR / "demand_log.csv"
+    # Reuse the shared logger so demand_log.csv keeps one stable schema.
     try:
-        _write_header = not _demand_log_path.exists()
-        with open(_demand_log_path, mode="a", newline="", encoding="utf-8") as _f:
-            _writer = csv.writer(_f)
-            if _write_header:
-                _writer.writerow(["timestamp", "item_name", "quantity"])
-            _log_ts = datetime.now().isoformat()
-            for _it in items:
-                _product = catalog.get(_it["sku"])
-                _item_name = _product.name if _product else _it["sku"]
-                _writer.writerow([_log_ts, _item_name, _it["qty"]])
-    except Exception as _exc:  # never crash the pipeline over logging
+        from forecasting.demand_engine import log_demand_items  # type: ignore
+        log_demand_items(cart_items=items, order_id=order_id)
+    except Exception:
+        # Never crash the order pipeline over analytics logging.
         pass
     # ─────────────────────────────────────────────────────────────────────────
 

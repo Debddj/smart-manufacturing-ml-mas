@@ -48,9 +48,42 @@ def load_demand_data():
         return pd.DataFrame(columns=columns)
 
     try:
-        df = pd.read_csv(_DEMAND_LOG)
-        if "timestamp" in df.columns:
-            df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+        rows = []
+        with open(_DEMAND_LOG, mode="r", newline="", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            # Consume header row (legacy files may have 3 or 4 columns).
+            next(reader, None)
+
+            for row in reader:
+                if not row or len(row) < 3:
+                    continue
+
+                ts = row[0].strip()
+                item_name = row[1].strip()
+
+                try:
+                    quantity = float(row[2])
+                except Exception:
+                    continue
+
+                order_id = row[3].strip() if len(row) >= 4 else ""
+
+                if not item_name:
+                    continue
+
+                rows.append({
+                    "timestamp": ts,
+                    "item_name": item_name,
+                    "quantity": quantity,
+                    "order_id": order_id,
+                })
+
+        if not rows:
+            return pd.DataFrame(columns=columns)
+
+        df = pd.DataFrame(rows, columns=columns)
+        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+        df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce").fillna(0.0)
         return df
     except Exception:
         return pd.DataFrame(columns=columns)

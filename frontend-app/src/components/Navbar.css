@@ -40,6 +40,11 @@
   font-size: 0.85rem;
   transition: all 0.2s;
 }
+.nav-link.external {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
 .nav-link:hover {
   color: #e2e8f0;
   background: rgba(100, 108, 255, 0.1);
