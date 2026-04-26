@@ -31,7 +31,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate('/')}>
         <span className="brand-icon">&#9881;</span>
-        <span className="brand-text">Supply Chain MAS</span>
+        <span className="brand-text" style={{color: '#1E293B'}}>Supply Chain MAS</span>
       </div>
       <div className="navbar-links">
         {navItems.map((item) => (
