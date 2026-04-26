@@ -29,16 +29,6 @@ def list_warehouses(current_user: User = Depends(require_role("regional_manager"
     return [{"id": w.id, "name": w.name, "region_id": w.region_id, "capacity": w.capacity, "current_stock": round(w.current_stock, 1), "utilization_pct": round(w.current_stock / max(w.capacity, 1) * 100, 1)} for w in warehouses]
 
 
-@router.get("/{warehouse_id}")
-def get_warehouse(warehouse_id: int, current_user: User = Depends(require_role("regional_manager")), db: Session = Depends(get_db)):
-    wh = db.query(Warehouse).filter(Warehouse.id == warehouse_id).first()
-    if not wh:
-        raise HTTPException(status_code=404, detail="Warehouse not found")
-    region = db.query(Region).filter(Region.id == wh.region_id).first()
-    stores = db.query(Store).filter(Store.region_id == wh.region_id, Store.is_active == True).all()
-    return {"id": wh.id, "name": wh.name, "region": region.name if region else None, "capacity": wh.capacity, "current_stock": round(wh.current_stock, 1), "utilization_pct": round(wh.current_stock / max(wh.capacity, 1) * 100, 1), "stores_served": [{"id": s.id, "name": s.name, "code": s.store_code} for s in stores]}
-
-
 @router.get("/imbalance")
 def detect_imbalance(current_user: User = Depends(require_role("regional_manager")), db: Session = Depends(get_db)):
     """Detect stock imbalances across regional warehouses."""
@@ -64,6 +54,17 @@ def detect_imbalance(current_user: User = Depends(require_role("regional_manager
     return {"imbalance_detected": imbalance, "average_utilization": round(avg_util * 100, 1), "warehouses": results}
 
 
+@router.get("/transfers")
+def list_warehouse_transfers(current_user: User = Depends(require_role("regional_manager")), db: Session = Depends(get_db)):
+    transfers = db.query(WarehouseTransfer).order_by(WarehouseTransfer.created_at.desc()).limit(50).all()
+    result = []
+    for t in transfers:
+        from_wh = db.query(Warehouse).filter(Warehouse.id == t.from_warehouse_id).first()
+        to_wh = db.query(Warehouse).filter(Warehouse.id == t.to_warehouse_id).first()
+        result.append({"id": t.id, "from_warehouse": from_wh.name if from_wh else None, "to_warehouse": to_wh.name if to_wh else None, "units": t.units, "reason": t.reason, "status": t.status, "created_at": t.created_at.isoformat() if t.created_at else None})
+    return result
+
+
 @router.post("/transfer")
 def trigger_warehouse_transfer(body: WarehouseTransferRequest, current_user: User = Depends(require_role("regional_manager")), db: Session = Depends(get_db)):
     from_wh = db.query(Warehouse).filter(Warehouse.id == body.from_warehouse_id).first()
@@ -80,12 +81,13 @@ def trigger_warehouse_transfer(body: WarehouseTransferRequest, current_user: Use
     return {"transfer_id": transfer.id, "from": from_wh.name, "to": to_wh.name, "units": body.units, "status": "completed"}
 
 
-@router.get("/transfers")
-def list_warehouse_transfers(current_user: User = Depends(require_role("regional_manager")), db: Session = Depends(get_db)):
-    transfers = db.query(WarehouseTransfer).order_by(WarehouseTransfer.created_at.desc()).limit(50).all()
-    result = []
-    for t in transfers:
-        from_wh = db.query(Warehouse).filter(Warehouse.id == t.from_warehouse_id).first()
-        to_wh = db.query(Warehouse).filter(Warehouse.id == t.to_warehouse_id).first()
-        result.append({"id": t.id, "from_warehouse": from_wh.name if from_wh else None, "to_warehouse": to_wh.name if to_wh else None, "units": t.units, "reason": t.reason, "status": t.status, "created_at": t.created_at.isoformat() if t.created_at else None})
-    return result
+# NOTE: This parameterized route MUST come AFTER all static routes (/imbalance, /transfers, /transfer)
+# otherwise FastAPI will try to parse "imbalance" or "transfers" as a warehouse_id int and return 422.
+@router.get("/{warehouse_id}")
+def get_warehouse(warehouse_id: int, current_user: User = Depends(require_role("regional_manager")), db: Session = Depends(get_db)):
+    wh = db.query(Warehouse).filter(Warehouse.id == warehouse_id).first()
+    if not wh:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    region = db.query(Region).filter(Region.id == wh.region_id).first()
+    stores = db.query(Store).filter(Store.region_id == wh.region_id, Store.is_active == True).all()
+    return {"id": wh.id, "name": wh.name, "region": region.name if region else None, "capacity": wh.capacity, "current_stock": round(wh.current_stock, 1), "utilization_pct": round(wh.current_stock / max(wh.capacity, 1) * 100, 1), "stores_served": [{"id": s.id, "name": s.name, "code": s.store_code} for s in stores]}
