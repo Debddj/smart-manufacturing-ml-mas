@@ -53,8 +53,8 @@ export default function CreateStore() {
         {step === 2 && (
           <>
             <h2>Confirm Creation</h2>
-            <p style={{ color: '#64748b', marginBottom: '1rem' }}>
-              Store "<strong style={{ color: '#0f172a' }}>{name}</strong>" will be created with auto-generated staff accounts.
+            <p style={{ color: '#8B6045', marginBottom: '1rem' }}>
+              Store "<strong style={{ color: '#2C1A0E' }}>{name}</strong>" will be created with auto-generated staff accounts.
             </p>
             <div className="confirm-box">
               <p>Store Manager + Sales Person accounts will be auto-created.</p>
@@ -77,7 +77,7 @@ export default function CreateStore() {
               <p><strong>Store:</strong> {result.store.name} ({result.store.store_code})</p>
               <p><strong>Region:</strong> {result.store.region}</p>
             </div>
-            <h3 style={{ color: '#0f172a', margin: '1.5rem 0 0.8rem' }}>Staff Credentials</h3>
+            <h3 style={{ color: '#2C1A0E', margin: '1.5rem 0 0.8rem' }}>Staff Credentials</h3>
             <table className="dash-table">
               <thead><tr><th>User ID</th><th>Password</th><th>Role</th></tr></thead>
               <tbody>

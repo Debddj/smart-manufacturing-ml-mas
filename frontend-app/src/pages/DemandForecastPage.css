@@ -1,11 +1,11 @@
 :root {
-  --df-bg: #f8fafc; --df-surface: #f1f5f9; --df-surface2: #f8fafc; --df-border: #e2e8f0;
-  --df-ink: #0f172a; --df-ink2: #1e293b; --df-muted: #64748b; --df-muted2: #94a3b8;
-  --df-blue: #2563eb; --df-blue-glow: rgba(37,99,235,.08); --df-blue2: #1d4ed8;
+  --df-bg: #F5EDE0; --df-surface: #EDD9C2; --df-surface2: #F5EDE0; --df-border: #D4B896;
+  --df-ink: #2C1A0E; --df-ink2: #3D1C0A; --df-muted: #8B6045; --df-muted2: #C8A882;
+  --df-blue: #8B4513; --df-blue-glow: rgba(139,69,19,.08); --df-blue2: #6B3410;
   --df-green: #16a34a; --df-green-dim: rgba(34,197,94,.08);
-  --df-slate: #64748b; --df-red: #dc2626; --df-red-dim: rgba(239,68,68,.08);
-  --df-amber: #ca8a04; --df-amber-dim: rgba(234,179,8,.08);
-  --df-card: #ffffff; --df-mono: 'Inter', monospace;
+  --df-slate: #8B6045; --df-red: #dc2626; --df-red-dim: rgba(239,68,68,.08);
+  --df-amber: #A0522D; --df-amber-dim: rgba(160,82,45,.10);
+  --df-card: #FFF8F2; --df-mono: 'Inter', monospace;
 }
 
 .forecast-dashboard {
@@ -64,13 +64,13 @@
   display: flex;
   flex-direction: column;
   min-height: 250px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(61,28,10,0.06);
 }
 
 .forecast-card:hover {
   border-color: var(--df-blue);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0,0,0,.06);
+  box-shadow: 0 4px 16px rgba(61,28,10,.08);
 }
 
 .forecast-card.highlight-card {
@@ -171,7 +171,7 @@
 .row-badge.medium {
   background: var(--df-amber-dim);
   color: var(--df-amber);
-  border-color: rgba(234,179,8,.2);
+  border-color: rgba(160,82,45,.2);
 }
 
 .insight-row {
@@ -202,7 +202,7 @@
   border: 1px solid var(--df-border);
   border-radius: 9px;
   padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(61,28,10,0.06);
 }
 
 .empty-state {
@@ -219,12 +219,12 @@
   border: 1px solid var(--df-border);
   border-radius: 12px;
   padding: 1.2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(61,28,10,0.06);
   transition: all .22s;
 }
 
 .store-forecast-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 12px rgba(61,28,10,0.09);
 }
 
 .store-card-header {
@@ -248,7 +248,7 @@
 
 .enlarge-btn {
   background: var(--df-blue-glow);
-  border: 1px solid rgba(37,99,235,.2);
+  border: 1px solid rgba(139,69,19,.2);
   color: var(--df-blue);
   padding: .35rem .75rem;
   border-radius: 6px;
@@ -287,7 +287,7 @@
 .forecast-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(61,28,10,0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,7 +297,7 @@
 }
 
 .forecast-modal {
-  background: #ffffff;
+  background: #FFF8F2;
   border: 1px solid var(--df-border);
   border-radius: 16px;
   padding: 2rem;
@@ -305,7 +305,7 @@
   max-width: 92vw;
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(61,28,10,0.18);
   animation: modalIn .25s ease;
 }
 
@@ -369,13 +369,13 @@
 
 .modal-product-table td {
   padding: .7rem .8rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #EDD9C2;
   font-size: .85rem;
   color: var(--df-ink);
 }
 
 .modal-product-table tr:hover td {
-  background: rgba(37, 99, 235, 0.02);
+  background: rgba(139, 69, 19, 0.03);
 }
 
 @media (max-width: 760px) {
