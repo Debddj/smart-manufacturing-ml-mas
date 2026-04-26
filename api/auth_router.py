@@ -9,7 +9,7 @@ Endpoints:
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -80,11 +80,12 @@ def me(current_user: User = Depends(get_current_user)):
 
 @router.post("/logout")
 def logout(
+    request: Request,
     current_user: User = Depends(get_current_user),
-    request=None,
 ):
     """Invalidate the current session."""
-    from fastapi import Request
-    # We need the token from header to destroy the session
-    # get_current_user already validated it, so we just need to extract it
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        destroy_session(token)
     return {"message": "Logged out successfully"}

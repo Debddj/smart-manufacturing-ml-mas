@@ -16,6 +16,7 @@ export default function Navbar() {
     if (user.role === 'store_manager') {
       navItems.push({ path: '/store-dashboard', label: 'Dashboard' });
       navItems.push({ path: '/transfers', label: 'Transfers' });
+      navItems.push({ path: '/store-forecast', label: 'Demand Forecast' });
     } else if (user.role === 'sales_person') {
       navItems.push({ path: '/sales', label: 'Sales' });
     } else if (user.role === 'regional_manager') {

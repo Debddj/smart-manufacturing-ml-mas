@@ -58,21 +58,22 @@ TRAIN_EVERY_N     = 4
 
 # ── Network definition ────────────────────────────────────────────────────────
 
-class _QNetwork(nn.Module):
-    """Two-hidden-layer MLP Q-function approximator."""
+if TORCH_AVAILABLE:
+    class _QNetwork(nn.Module):
+        """Two-hidden-layer MLP Q-function approximator."""
 
-    def __init__(self, state_dim: int, n_actions: int, hidden: int = 128):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(state_dim, hidden),
-            nn.ReLU(),
-            nn.Linear(hidden, hidden),
-            nn.ReLU(),
-            nn.Linear(hidden, n_actions),
-        )
+        def __init__(self, state_dim: int, n_actions: int, hidden: int = 128):
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(state_dim, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, n_actions),
+            )
 
-    def forward(self, x):
-        return self.net(x)
+        def forward(self, x):
+            return self.net(x)
 
 
 # ── Replay buffer ─────────────────────────────────────────────────────────────

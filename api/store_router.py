@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload
 from typing import Optional
 
 from db.database import get_db
-from db.models import Store, StoreInventory, StockAlert, User
+from db.models import Store, StoreInventory, StockAlert, User, Product
 from auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/stores", tags=["stores"])
@@ -183,3 +183,63 @@ def get_store_staff(
     ).all()
 
     return [u.to_dict() for u in staff]
+
+
+@router.get("/{store_id}/forecast")
+def get_store_forecast(
+    store_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get demand forecast data for a store's products.
+    Accessible by store_manager (own store) and regional_manager (region stores).
+    """
+    if current_user.role == "regional_manager":
+        store = db.query(Store).filter(Store.id == store_id).first()
+        if not store or store.region_id != current_user.region_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+    elif current_user.store_id != store_id:
+        raise HTTPException(status_code=403, detail="Access denied to this store")
+
+    store = db.query(Store).filter(Store.id == store_id, Store.is_active == True).first()
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    from sqlalchemy.orm import joinedload as jl
+    inventory = (
+        db.query(StoreInventory)
+        .options(jl(StoreInventory.product))
+        .filter(StoreInventory.store_id == store_id)
+        .all()
+    )
+
+    products_data = []
+    for inv in inventory:
+        prod = inv.product
+        ratio = inv.quantity / max(prod.base_demand, 1)
+        if ratio < 1.5:
+            demand_status = "HIGH"
+        elif ratio < 3.0:
+            demand_status = "MEDIUM"
+        else:
+            demand_status = "LOW"
+
+        products_data.append({
+            "product_id": prod.id,
+            "sku": prod.sku,
+            "name": prod.name,
+            "category": prod.category,
+            "unit_price": prod.unit_price,
+            "current_stock": inv.quantity,
+            "base_demand": prod.base_demand,
+            "demand_status": demand_status,
+        })
+
+    return {
+        "store_id": store.id,
+        "store_name": store.name,
+        "store_code": store.store_code,
+        "products": products_data,
+        "total_stock": sum(p["current_stock"] for p in products_data),
+    }

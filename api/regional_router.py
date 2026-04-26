@@ -241,3 +241,66 @@ def region_underperforming_stores(
         for sid, data in store_revenue.items()
         if data["revenue"] < threshold
     ]
+
+
+@router.get("/{region_id}/stores/forecast")
+def stores_forecast(
+    region_id: int,
+    current_user: User = Depends(require_role("regional_manager")),
+    db: Session = Depends(get_db),
+):
+    """
+    Return per-store inventory with product-level details and demand predictions
+    for every store in this region.
+    """
+    if current_user.region_id != region_id:
+        raise HTTPException(403, "Access denied to this region")
+
+    region = db.query(Region).filter(Region.id == region_id).first()
+    if not region:
+        raise HTTPException(404, "Region not found")
+
+    stores = db.query(Store).filter(Store.region_id == region_id).all()
+    result = []
+
+    for store in stores:
+        inventory = (
+            db.query(StoreInventory, Product)
+            .join(Product, StoreInventory.product_id == Product.id)
+            .filter(StoreInventory.store_id == store.id)
+            .all()
+        )
+
+        products_data = []
+        for inv, prod in inventory:
+            # Simple demand classification based on stock vs base_demand
+            ratio = inv.quantity / max(prod.base_demand, 1)
+            if ratio < 1.5:
+                demand_status = "HIGH"
+            elif ratio < 3.0:
+                demand_status = "MEDIUM"
+            else:
+                demand_status = "LOW"
+
+            products_data.append({
+                "product_id": prod.id,
+                "sku": prod.sku,
+                "name": prod.name,
+                "category": prod.category,
+                "unit_price": prod.unit_price,
+                "current_stock": inv.quantity,
+                "base_demand": prod.base_demand,
+                "demand_status": demand_status,
+            })
+
+        result.append({
+            "store_id": store.id,
+            "name": store.name,
+            "store_code": store.store_code,
+            "product_count": len(products_data),
+            "total_stock": sum(p["current_stock"] for p in products_data),
+            "products": products_data,
+        })
+
+    return result
+

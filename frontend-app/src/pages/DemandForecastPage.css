@@ -1,10 +1,11 @@
 :root {
-  --shop-bg: #FFF3E6; --shop-surface: #FFF8F0; --shop-surface2: #FFFBF7; --shop-border: #E8D5C4;
-  --shop-ink: #381932; --shop-ink2: #4A2A3E; --shop-muted: #6B4A5E; --shop-muted2: #8B6A7E;
-  --shop-gold: #C4915F; --shop-gold-glow: rgba(196,145,95,.15); --shop-gold2: #A67A4A;
-  --shop-sage: #6B8E7F; --shop-sage-dim: rgba(107,142,127,.15);
-  --shop-slate: #6B7A8E; --shop-red: #B85C5C; --shop-red-dim: rgba(184,92,92,.15);
-  --shop-cream: #FFF3E6; --shop-card: #FFFFFF; --shop-mono: 'Inter', monospace;
+  --df-bg: #f8fafc; --df-surface: #f1f5f9; --df-surface2: #f8fafc; --df-border: #e2e8f0;
+  --df-ink: #0f172a; --df-ink2: #1e293b; --df-muted: #64748b; --df-muted2: #94a3b8;
+  --df-blue: #2563eb; --df-blue-glow: rgba(37,99,235,.08); --df-blue2: #1d4ed8;
+  --df-green: #16a34a; --df-green-dim: rgba(34,197,94,.08);
+  --df-slate: #64748b; --df-red: #dc2626; --df-red-dim: rgba(239,68,68,.08);
+  --df-amber: #ca8a04; --df-amber-dim: rgba(234,179,8,.08);
+  --df-card: #ffffff; --df-mono: 'Inter', monospace;
 }
 
 .forecast-dashboard {
@@ -12,8 +13,8 @@
   width: 100%;
   margin: 0;
   padding: 1.75rem 2rem;
-  background: var(--shop-bg);
-  color: var(--shop-ink);
+  background: var(--df-bg);
+  color: var(--df-ink);
   font-family: 'Inter', sans-serif;
 }
 
@@ -24,7 +25,7 @@
 .forecast-header h1 {
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--shop-ink);
+  color: var(--df-ink);
   letter-spacing: .01em;
   margin-bottom: .25rem;
 }
@@ -33,18 +34,18 @@
   font-size: .75rem;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: var(--shop-muted);
+  color: var(--df-muted);
   font-weight: 600;
 }
 
 .forecast-loading {
   text-align: center;
   padding: 3rem;
-  color: var(--shop-muted);
+  color: var(--df-muted);
   font-size: .92rem;
-  background: var(--shop-card);
+  background: var(--df-card);
   border-radius: 9px;
-  border: 1px solid var(--shop-border);
+  border: 1px solid var(--df-border);
 }
 
 .forecast-grid {
@@ -55,31 +56,32 @@
 }
 
 .forecast-card {
-  background: var(--shop-card);
-  border: 1px solid var(--shop-border);
+  background: var(--df-card);
+  border: 1px solid var(--df-border);
   border-radius: 9px;
   padding: 1rem;
   transition: all .22s;
   display: flex;
   flex-direction: column;
   min-height: 250px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .forecast-card:hover {
-  border-color: var(--shop-ink2);
+  border-color: var(--df-blue);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(0,0,0,.06);
 }
 
 .forecast-card.highlight-card {
-  background: var(--shop-surface2);
+  background: var(--df-surface);
 }
 
 .forecast-card h2,
 .forecast-chart-container h2 {
   font-size: .78rem;
   font-weight: 700;
-  color: var(--shop-muted);
+  color: var(--df-muted);
   text-transform: uppercase;
   letter-spacing: .13em;
   margin-bottom: .8rem;
@@ -93,14 +95,14 @@
   content: '';
   width: 3px;
   height: 13px;
-  background: var(--shop-ink);
+  background: var(--df-blue);
   border-radius: 2px;
 }
 
 .card-content {
   flex: 1;
-  background: var(--shop-surface2);
-  border: 1px solid var(--shop-border);
+  background: var(--df-surface);
+  border: 1px solid var(--df-border);
   border-radius: 8px;
   padding: .75rem .8rem;
 }
@@ -115,7 +117,7 @@
 }
 
 .card-content.scrollable::-webkit-scrollbar-thumb {
-  background: var(--shop-border);
+  background: var(--df-border);
   border-radius: 2px;
 }
 
@@ -125,7 +127,7 @@
   align-items: center;
   gap: .5rem;
   padding: .45rem 0;
-  border-bottom: 1px solid var(--shop-border);
+  border-bottom: 1px solid var(--df-border);
 }
 
 .forecast-row:last-child {
@@ -134,13 +136,13 @@
 
 .row-label {
   font-size: .76rem;
-  color: var(--shop-ink2);
+  color: var(--df-ink2);
   font-weight: 600;
 }
 
 .row-value {
   font-size: .8rem;
-  color: var(--shop-ink);
+  color: var(--df-ink);
   font-weight: 700;
 }
 
@@ -155,21 +157,21 @@
 }
 
 .row-badge.high {
-  background: var(--shop-red-dim);
-  color: var(--shop-red);
-  border-color: rgba(184,92,92,.3);
+  background: var(--df-red-dim);
+  color: var(--df-red);
+  border-color: rgba(239,68,68,.2);
 }
 
 .row-badge.low {
-  background: var(--shop-sage-dim);
-  color: var(--shop-sage);
-  border-color: rgba(107,142,127,.3);
+  background: var(--df-green-dim);
+  color: var(--df-green);
+  border-color: rgba(34,197,94,.2);
 }
 
 .row-badge.medium {
-  background: var(--shop-gold-glow);
-  color: var(--shop-gold2);
-  border-color: rgba(196,145,95,.35);
+  background: var(--df-amber-dim);
+  color: var(--df-amber);
+  border-color: rgba(234,179,8,.2);
 }
 
 .insight-row {
@@ -178,36 +180,202 @@
   align-items: center;
   margin-bottom: .5rem;
   padding: .42rem .5rem;
-  background: var(--shop-card);
+  background: var(--df-card);
   border-radius: 6px;
-  border: 1px solid var(--shop-border);
+  border: 1px solid var(--df-border);
   gap: .5rem;
 }
 
 .insight-row span {
   font-size: .72rem;
-  color: var(--shop-muted);
+  color: var(--df-muted);
   font-weight: 600;
 }
 
 .insight-row strong {
   font-size: .78rem;
-  color: var(--shop-ink);
+  color: var(--df-ink);
 }
 
 .forecast-chart-container {
-  background: var(--shop-card);
-  border: 1px solid var(--shop-border);
+  background: var(--df-card);
+  border: 1px solid var(--df-border);
   border-radius: 9px;
   padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .empty-state {
-  color: var(--shop-muted2);
+  color: var(--df-muted2);
   font-size: .75rem;
   font-style: italic;
   text-align: center;
   padding: .9rem;
+}
+
+/* ── Store forecast cards ─────────────────────────────────── */
+.store-forecast-card {
+  background: var(--df-card);
+  border: 1px solid var(--df-border);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all .22s;
+}
+
+.store-forecast-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.store-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .8rem;
+}
+
+.store-card-header h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--df-ink);
+}
+
+.store-card-header .store-code {
+  font-size: .65rem;
+  color: var(--df-muted);
+  font-family: var(--df-mono);
+}
+
+.enlarge-btn {
+  background: var(--df-blue-glow);
+  border: 1px solid rgba(37,99,235,.2);
+  color: var(--df-blue);
+  padding: .35rem .75rem;
+  border-radius: 6px;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.enlarge-btn:hover {
+  background: var(--df-blue);
+  color: #ffffff;
+}
+
+.store-products-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.product-chip {
+  font-size: .65rem;
+  padding: .2rem .5rem;
+  background: var(--df-surface);
+  border: 1px solid var(--df-border);
+  border-radius: 6px;
+  color: var(--df-ink2);
+  font-weight: 500;
+}
+
+/* ── Enlarge modal ────────────────────────────────────────── */
+.forecast-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.forecast-modal {
+  background: #ffffff;
+  border: 1px solid var(--df-border);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 680px;
+  max-width: 92vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  animation: modalIn .25s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.forecast-modal h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--df-ink);
+  margin-bottom: .4rem;
+}
+
+.forecast-modal .modal-subtitle {
+  font-size: .75rem;
+  color: var(--df-muted);
+  margin-bottom: 1.5rem;
+}
+
+.forecast-modal .close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--df-surface);
+  border: 1px solid var(--df-border);
+  color: var(--df-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+}
+
+.forecast-modal .close-btn:hover {
+  background: var(--df-red-dim);
+  border-color: var(--df-red);
+  color: var(--df-red);
+}
+
+.modal-product-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modal-product-table th {
+  color: var(--df-muted);
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+  padding: .6rem .8rem;
+  border-bottom: 2px solid var(--df-border);
+  font-weight: 700;
+}
+
+.modal-product-table td {
+  padding: .7rem .8rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: .85rem;
+  color: var(--df-ink);
+}
+
+.modal-product-table tr:hover td {
+  background: rgba(37, 99, 235, 0.02);
 }
 
 @media (max-width: 760px) {

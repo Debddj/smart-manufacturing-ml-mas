@@ -1,53 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; }
-.dashboard { padding: 2rem; font-family: 'Inter', sans-serif; color: #e2e8f0; min-height: calc(100vh - 60px); }
-.dash-loading { display: flex; align-items: center; justify-content: center; height: 50vh; color: #8892b0; font-size: 1.1rem; }
+.dashboard { padding: 2rem; font-family: 'Inter', sans-serif; color: #1e293b; min-height: calc(100vh - 60px); background: #f8fafc; }
+.dash-loading { display: flex; align-items: center; justify-content: center; height: 50vh; color: #64748b; font-size: 1.1rem; }
 .dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-.dash-header h1 { font-size: 1.8rem; font-weight: 700; color: #ccd6f6; }
-.dash-subtitle { color: #5a6380; font-size: 0.85rem; margin-top: 0.3rem; }
-.ws-indicator { display: flex; align-items: center; gap: 0.4rem; color: #5a6380; font-size: 0.8rem; }
-.ws-dot { width: 8px; height: 8px; border-radius: 50%; background: #5a6380; }
-.ws-dot.connected { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.5); }
+.dash-header h1 { font-size: 1.8rem; font-weight: 700; color: #0f172a; }
+.dash-subtitle { color: #64748b; font-size: 0.85rem; margin-top: 0.3rem; }
+.ws-indicator { display: flex; align-items: center; gap: 0.4rem; color: #64748b; font-size: 0.8rem; }
+.ws-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+.ws-dot.connected { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
 .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
-.stat-card { background: rgba(26, 26, 62, 0.6); border: 1px solid rgba(100, 108, 255, 0.1); border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, border-color 0.2s; }
-.stat-card:hover { transform: translateY(-2px); border-color: rgba(100, 108, 255, 0.3); }
-.stat-card.purple { border-left: 3px solid #a78bfa; }
-.stat-card.blue { border-left: 3px solid #60a5fa; }
-.stat-card.green { border-left: 3px solid #4ade80; }
-.stat-card.red { border-left: 3px solid #ff6b6b; }
-.stat-card.gray { border-left: 3px solid #5a6380; }
-.stat-label { color: #8892b0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
-.stat-value { font-size: 2rem; font-weight: 700; color: #ccd6f6; }
-.stat-detail { color: #5a6380; font-size: 0.75rem; margin-top: 0.3rem; }
+.stat-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.stat-card.purple { border-left: 3px solid #2563eb; }
+.stat-card.blue { border-left: 3px solid #3b82f6; }
+.stat-card.green { border-left: 3px solid #22c55e; }
+.stat-card.red { border-left: 3px solid #ef4444; }
+.stat-card.gray { border-left: 3px solid #94a3b8; }
+.stat-label { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+.stat-value { font-size: 2rem; font-weight: 700; color: #0f172a; }
+.stat-detail { color: #94a3b8; font-size: 0.75rem; margin-top: 0.3rem; }
 .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
 @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
-.dash-panel { background: rgba(26, 26, 62, 0.6); border: 1px solid rgba(100, 108, 255, 0.1); border-radius: 16px; padding: 1.5rem; }
-.dash-panel h2 { font-size: 1rem; font-weight: 600; color: #ccd6f6; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(100, 108, 255, 0.1); }
+.dash-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.dash-panel h2 { font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9; }
 .dash-side { display: flex; flex-direction: column; gap: 1.2rem; }
 .dash-panel.small { padding: 1.2rem; }
 .dash-table { width: 100%; border-collapse: collapse; }
-.dash-table th { color: #8892b0; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid rgba(100, 108, 255, 0.1); }
-.dash-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid rgba(100, 108, 255, 0.05); font-size: 0.85rem; color: #ccd6f6; }
-.dash-table tr:hover td { background: rgba(100, 108, 255, 0.04); }
-.mono { font-family: 'Courier New', monospace; font-size: 0.78rem; color: #8892b0; }
+.dash-table th { color: #64748b; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid #e2e8f0; }
+.dash-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; color: #1e293b; }
+.dash-table tr:hover td { background: rgba(37, 99, 235, 0.02); }
+.mono { font-family: 'Courier New', monospace; font-size: 0.78rem; color: #64748b; }
 .num { font-variant-numeric: tabular-nums; font-weight: 600; }
 .status-badge { padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-.status-badge.ok { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
-.status-badge.warning { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
-.status-badge.critical { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; }
-.empty-state { color: #5a6380; font-size: 0.85rem; text-align: center; padding: 1rem; }
+.status-badge.ok { background: rgba(34, 197, 94, 0.08); color: #16a34a; }
+.status-badge.warning { background: rgba(234, 179, 8, 0.08); color: #ca8a04; }
+.status-badge.critical { background: rgba(239, 68, 68, 0.08); color: #dc2626; }
+.empty-state { color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 1rem; }
 .alert-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.6rem; border-radius: 8px; margin-bottom: 0.4rem; font-size: 0.8rem; }
-.alert-item.low_stock { background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2); }
-.alert-item.out_of_stock { background: rgba(255, 107, 107, 0.08); border: 1px solid rgba(255, 107, 107, 0.2); }
-.alert-item.high_demand { background: rgba(96, 165, 250, 0.08); border: 1px solid rgba(96, 165, 250, 0.2); }
-.alert-type { font-weight: 600; font-size: 0.7rem; text-transform: uppercase; color: #fbbf24; min-width: 70px; }
-.alert-item.out_of_stock .alert-type { color: #ff6b6b; }
-.alert-product { color: #ccd6f6; flex: 1; }
-.alert-level { color: #8892b0; font-size: 0.75rem; }
-.staff-item { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(100, 108, 255, 0.05); }
-.staff-name { color: #ccd6f6; font-size: 0.85rem; }
-.staff-role { color: #8892b0; font-size: 0.75rem; text-transform: capitalize; }
+.alert-item.low_stock { background: rgba(234, 179, 8, 0.06); border: 1px solid rgba(234, 179, 8, 0.15); }
+.alert-item.out_of_stock { background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.15); }
+.alert-item.high_demand { background: rgba(37, 99, 235, 0.06); border: 1px solid rgba(37, 99, 235, 0.15); }
+.alert-type { font-weight: 600; font-size: 0.7rem; text-transform: uppercase; color: #ca8a04; min-width: 70px; }
+.alert-item.out_of_stock .alert-type { color: #dc2626; }
+.alert-product { color: #1e293b; flex: 1; }
+.alert-level { color: #64748b; font-size: 0.75rem; }
+.staff-item { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #f1f5f9; }
+.staff-name { color: #1e293b; font-size: 0.85rem; }
+.staff-role { color: #64748b; font-size: 0.75rem; text-transform: capitalize; }
 .top-product { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; }
-.tp-rank { color: #646cff; font-weight: 700; font-size: 0.8rem; min-width: 24px; }
-.tp-name { flex: 1; color: #ccd6f6; font-size: 0.85rem; }
-.tp-qty { color: #8892b0; font-size: 0.8rem; }
+.tp-rank { color: #2563eb; font-weight: 700; font-size: 0.8rem; min-width: 24px; }
+.tp-name { flex: 1; color: #1e293b; font-size: 0.85rem; }
+.tp-qty { color: #64748b; font-size: 0.8rem; }
