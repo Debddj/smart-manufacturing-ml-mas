@@ -9,7 +9,7 @@ import {
 import './DemandForecastPage.css';
 
 const COLORS_DEMAND = { HIGH: '#dc2626', MEDIUM: '#ca8a04', LOW: '#16a34a' };
-const PIE_COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#1e40af', '#1d4ed8', '#6366f1'];
+const PIE_COLORS = ['#8B4513', '#A0522D', '#C8956C', '#D4A574', '#7B5A3C', '#6B3410', '#9C6B3C', '#B8825A'];
 
 export default function DemandForecastPage() {
   const { user } = useAuth();
@@ -67,8 +67,8 @@ export default function DemandForecastPage() {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
     return (
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '.6rem .8rem', boxShadow: '0 4px 12px rgba(0,0,0,.08)', fontSize: '.8rem' }}>
-        <p style={{ fontWeight: 700, marginBottom: '.3rem', color: '#0f172a' }}>{d?.fullName || label}</p>
+      <div style={{ background: '#FFF8F2', border: '1px solid #D4B896', borderRadius: 8, padding: '.6rem .8rem', boxShadow: '0 4px 12px rgba(61,28,10,.10)', fontSize: '.8rem' }}>
+        <p style={{ fontWeight: 700, marginBottom: '.3rem', color: '#2C1A0E' }}>{d?.fullName || label}</p>
         {payload.map((p, i) => (
           <p key={i} style={{ color: p.color, margin: '.15rem 0' }}>
             {p.name}: <strong>{p.value}</strong>
@@ -94,13 +94,13 @@ export default function DemandForecastPage() {
             <div className="forecast-card highlight-card" style={{ minHeight: 'auto' }}>
               <h2>Stores</h2>
               <div className="card-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>{stores.length}</span>
+                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#2C1A0E' }}>{stores.length}</span>
               </div>
             </div>
             <div className="forecast-card highlight-card" style={{ minHeight: 'auto' }}>
               <h2>Total Products</h2>
               <div className="card-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>{totalProducts}</span>
+                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#2C1A0E' }}>{totalProducts}</span>
               </div>
             </div>
             <div className="forecast-card highlight-card" style={{ minHeight: 'auto' }}>
@@ -112,7 +112,7 @@ export default function DemandForecastPage() {
             <div className="forecast-card highlight-card" style={{ minHeight: 'auto' }}>
               <h2>Total Stock</h2>
               <div className="card-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>{totalStock.toFixed(0)}</span>
+                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#2C1A0E' }}>{totalStock.toFixed(0)}</span>
               </div>
             </div>
           </div>
@@ -124,9 +124,9 @@ export default function DemandForecastPage() {
               <h2>Demand Distribution by Store</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={storeBarData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#D4B896" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#8B6045' }} />
+                  <YAxis tick={{ fontSize: 12, fill: '#8B6045' }} />
                   <Tooltip content={<CustomBarTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '.78rem' }} />
                   <Bar dataKey="highDemand" name="High Demand" fill="#dc2626" radius={[4, 4, 0, 0]} />
@@ -152,7 +152,7 @@ export default function DemandForecastPage() {
                 </ResponsiveContainer>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '.8rem', marginTop: '.3rem' }}>
                   {regionDemandPie.map(d => (
-                    <span key={d.name} style={{ fontSize: '.65rem', display: 'flex', alignItems: 'center', gap: '.25rem', color: '#64748b' }}>
+                    <span key={d.name} style={{ fontSize: '.65rem', display: 'flex', alignItems: 'center', gap: '.25rem', color: '#8B6045' }}>
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, display: 'inline-block' }} />
                       {d.name}
                     </span>
@@ -199,7 +199,7 @@ export default function DemandForecastPage() {
                     <span className="row-badge high">{highItems.length} High</span>
                     <span className="row-badge medium">{medItems.length} Medium</span>
                     <span className="row-badge low">{lowItems.length} Low</span>
-                    <span style={{ fontSize: '.7rem', color: '#64748b', marginLeft: 'auto' }}>
+                    <span style={{ fontSize: '.7rem', color: '#8B6045', marginLeft: 'auto' }}>
                       Stock: {store.total_stock.toFixed(0)} units
                     </span>
                   </div>
@@ -214,7 +214,7 @@ export default function DemandForecastPage() {
                         </span>
                       ))}
                     {store.products.length > 5 && (
-                      <span className="product-chip" style={{ color: '#2563eb', fontWeight: 600 }}>
+                      <span className="product-chip" style={{ color: '#8B4513', fontWeight: 600 }}>
                         +{store.products.length - 5} more
                       </span>
                     )}
@@ -238,8 +238,8 @@ export default function DemandForecastPage() {
               onClick={() => setSelectedStore(null)}
               style={{
                 position: 'absolute', top: '1rem', right: '1rem',
-                background: '#f1f5f9', border: '1px solid #e2e8f0',
-                color: '#64748b', width: 32, height: 32, borderRadius: 8,
+                background: '#EDD9C2', border: '1px solid #D4B896',
+                color: '#8B6045', width: 32, height: 32, borderRadius: 8,
                 cursor: 'pointer', fontSize: '1rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
@@ -252,25 +252,25 @@ export default function DemandForecastPage() {
 
             {/* Charts inside modal */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-              <div style={{ background: '#f8fafc', borderRadius: 8, padding: '.8rem', border: '1px solid #e2e8f0' }}>
-                <p style={{ fontSize: '.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '.5rem' }}>Stock vs Base Demand (Top 10)</p>
+              <div style={{ background: '#F5EDE0', borderRadius: 8, padding: '.8rem', border: '1px solid #D4B896' }}>
+                <p style={{ fontSize: '.72rem', fontWeight: 700, color: '#8B6045', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '.5rem' }}>Stock vs Base Demand (Top 10)</p>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={selectedStore.products.sort((a, b) => b.base_demand - a.base_demand).slice(0, 10).map(p => ({
                     name: p.sku,
                     stock: p.current_stock,
                     demand: p.base_demand,
                   }))} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} angle={-30} textAnchor="end" height={50} />
-                    <YAxis tick={{ fontSize: 10, fill: '#64748b' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#D4B896" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#8B6045' }} angle={-30} textAnchor="end" height={50} />
+                    <YAxis tick={{ fontSize: 10, fill: '#8B6045' }} />
                     <Tooltip />
-                    <Bar dataKey="stock" name="Stock" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="demand" name="Daily Demand" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="stock" name="Stock" fill="#8B4513" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="demand" name="Daily Demand" fill="#C8956C" radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{ background: '#f8fafc', borderRadius: 8, padding: '.8rem', border: '1px solid #e2e8f0' }}>
-                <p style={{ fontSize: '.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '.5rem' }}>Demand Classification</p>
+              <div style={{ background: '#F5EDE0', borderRadius: 8, padding: '.8rem', border: '1px solid #D4B896' }}>
+                <p style={{ fontSize: '.72rem', fontWeight: 700, color: '#8B6045', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '.5rem' }}>Demand Classification</p>
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
@@ -310,10 +310,10 @@ export default function DemandForecastPage() {
                   .map(p => (
                     <tr key={p.product_id}>
                       <td style={{ fontWeight: 600 }}>{p.name}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#64748b' }}>{p.sku}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#8B6045' }}>{p.sku}</td>
                       <td style={{ fontSize: '.78rem' }}>{p.category}</td>
                       <td style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{p.current_stock.toFixed(0)}</td>
-                      <td style={{ fontVariantNumeric: 'tabular-nums', color: '#64748b' }}>{p.base_demand}/day</td>
+                      <td style={{ fontVariantNumeric: 'tabular-nums', color: '#8B6045' }}>{p.base_demand}/day</td>
                       <td style={{ fontVariantNumeric: 'tabular-nums' }}>₹{p.unit_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td><span className={`row-badge ${p.demand_status.toLowerCase()}`}>{p.demand_status}</span></td>
                     </tr>

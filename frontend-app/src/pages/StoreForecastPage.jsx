@@ -9,7 +9,7 @@ import {
 import './DemandForecastPage.css';
 
 const COLORS_DEMAND = { HIGH: '#dc2626', MEDIUM: '#ca8a04', LOW: '#16a34a' };
-const CAT_COLORS = ['#2563eb', '#6366f1', '#0891b2', '#059669', '#d97706', '#dc2626', '#7c3aed', '#be185d'];
+const CAT_COLORS = ['#8B4513', '#A0522D', '#C8956C', '#D4A574', '#7B5A3C', '#6B3410', '#9C6B3C', '#B8825A'];
 
 export default function StoreForecastPage() {
   const { user } = useAuth();
@@ -94,15 +94,15 @@ export default function StoreForecastPage() {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
     return (
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '.6rem .8rem', boxShadow: '0 4px 12px rgba(0,0,0,.08)', fontSize: '.8rem' }}>
-        <p style={{ fontWeight: 700, marginBottom: '.3rem', color: '#0f172a' }}>{d?.fullName || label}</p>
+      <div style={{ background: '#FFF8F2', border: '1px solid #D4B896', borderRadius: 8, padding: '.6rem .8rem', boxShadow: '0 4px 12px rgba(61,28,10,.10)', fontSize: '.8rem' }}>
+        <p style={{ fontWeight: 700, marginBottom: '.3rem', color: '#2C1A0E' }}>{d?.fullName || label}</p>
         {payload.map((p, i) => (
           <p key={i} style={{ color: p.color, margin: '.15rem 0' }}>
             {p.name}: <strong>{p.value}</strong>
           </p>
         ))}
         {d?.daysOfStock !== undefined && (
-          <p style={{ color: '#64748b', marginTop: '.2rem', fontSize: '.72rem' }}>≈ {d.daysOfStock} days of stock</p>
+          <p style={{ color: '#8B6045', marginTop: '.2rem', fontSize: '.72rem' }}>≈ {d.daysOfStock} days of stock</p>
         )}
       </div>
     );
@@ -119,12 +119,12 @@ export default function StoreForecastPage() {
       <div style={{ display: 'flex', gap: '.5rem', marginBottom: '1.5rem' }}>
         <button
           className="enlarge-btn"
-          style={activeTab === 'forecast' ? { background: '#2563eb', color: '#fff', borderColor: '#2563eb' } : {}}
+          style={activeTab === 'forecast' ? { background: '#8B4513', color: '#fff', borderColor: '#8B4513' } : {}}
           onClick={() => setActiveTab('forecast')}
         >📊 Product Forecast</button>
         <button
           className="enlarge-btn"
-          style={activeTab === 'sales' ? { background: '#2563eb', color: '#fff', borderColor: '#2563eb' } : {}}
+          style={activeTab === 'sales' ? { background: '#8B4513', color: '#fff', borderColor: '#8B4513' } : {}}
           onClick={() => setActiveTab('sales')}
         >📋 Sales Records ({sales.length})</button>
       </div>
@@ -136,7 +136,7 @@ export default function StoreForecastPage() {
             <div className="forecast-card highlight-card" style={{ minHeight: 'auto' }}>
               <h2>Total Products</h2>
               <div className="card-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>{products.length}</span>
+                <span style={{ fontSize: '2rem', fontWeight: 700, color: '#2C1A0E' }}>{products.length}</span>
               </div>
             </div>
             <div className="forecast-card" style={{ minHeight: 'auto', borderLeft: '3px solid #dc2626' }}>
@@ -166,13 +166,13 @@ export default function StoreForecastPage() {
               <h2>Stock vs Daily Demand (Top 12)</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={stockDemandBar} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} angle={-25} textAnchor="end" height={50} />
-                  <YAxis tick={{ fontSize: 11, fill: '#64748b' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#D4B896" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#8B6045' }} angle={-25} textAnchor="end" height={50} />
+                  <YAxis tick={{ fontSize: 11, fill: '#8B6045' }} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '.78rem' }} />
-                  <Bar dataKey="stock" name="Current Stock" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="demand" name="Daily Demand" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="stock" name="Current Stock" fill="#8B4513" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="demand" name="Daily Demand" fill="#C8956C" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -192,7 +192,7 @@ export default function StoreForecastPage() {
                 </ResponsiveContainer>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '.6rem', flexWrap: 'wrap' }}>
                   {demandPie.map(d => (
-                    <span key={d.name} style={{ fontSize: '.62rem', display: 'flex', alignItems: 'center', gap: '.2rem', color: '#64748b' }}>
+                    <span key={d.name} style={{ fontSize: '.62rem', display: 'flex', alignItems: 'center', gap: '.2rem', color: '#8B6045' }}>
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: d.color, display: 'inline-block' }} />
                       {d.name}
                     </span>
@@ -219,17 +219,17 @@ export default function StoreForecastPage() {
             <h2>Stock Coverage (Days of Supply)</h2>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={coverageData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} angle={-25} textAnchor="end" height={45} />
-                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} label={{ value: 'Days', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: '#94a3b8' } }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#D4B896" />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#8B6045' }} angle={-25} textAnchor="end" height={45} />
+                <YAxis tick={{ fontSize: 11, fill: '#8B6045' }} label={{ value: 'Days', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: '#C8A882' } }} />
                 <Tooltip formatter={(value) => [`${value} days`, 'Coverage']} />
                 <defs>
                   <linearGradient id="coverageGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                    <stop offset="5%" stopColor="#8B4513" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#8B4513" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="days" stroke="#2563eb" fill="url(#coverageGrad)" strokeWidth={2} />
+                <Area type="monotone" dataKey="days" stroke="#8B4513" fill="url(#coverageGrad)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -240,7 +240,7 @@ export default function StoreForecastPage() {
               <button
                 key={cat}
                 className="enlarge-btn"
-                style={categoryFilter === cat ? { background: '#2563eb', color: '#fff', borderColor: '#2563eb' } : {}}
+                style={categoryFilter === cat ? { background: '#8B4513', color: '#fff', borderColor: '#8B4513' } : {}}
                 onClick={() => setCategoryFilter(cat)}
               >{cat}</button>
             ))}
@@ -267,10 +267,10 @@ export default function StoreForecastPage() {
                   .map(p => (
                     <tr key={p.product_id}>
                       <td style={{ fontWeight: 600 }}>{p.name}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#64748b' }}>{p.sku}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#8B6045' }}>{p.sku}</td>
                       <td style={{ fontSize: '.78rem' }}>{p.category}</td>
                       <td style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{p.current_stock.toFixed(0)}</td>
-                      <td style={{ fontVariantNumeric: 'tabular-nums', color: '#64748b' }}>{p.base_demand}/day</td>
+                      <td style={{ fontVariantNumeric: 'tabular-nums', color: '#8B6045' }}>{p.base_demand}/day</td>
                       <td style={{ fontVariantNumeric: 'tabular-nums' }}>₹{p.unit_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td><span className={`row-badge ${p.demand_status.toLowerCase()}`}>{p.demand_status}</span></td>
                     </tr>
@@ -301,12 +301,12 @@ export default function StoreForecastPage() {
               <tbody>
                 {sales.map((s, i) => (
                   <tr key={s.id}>
-                    <td style={{ color: '#94a3b8', fontSize: '.78rem' }}>{i + 1}</td>
+                    <td style={{ color: '#C8A882', fontSize: '.78rem' }}>{i + 1}</td>
                     <td style={{ fontWeight: 600 }}>{s.product_name}</td>
                     <td style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.quantity}</td>
                     <td style={{ fontVariantNumeric: 'tabular-nums' }}>₹{s.sale_price?.toFixed(2)}</td>
-                    <td style={{ fontSize: '.78rem', color: '#64748b' }}>{s.sold_by || '—'}</td>
-                    <td style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#64748b' }}>
+                    <td style={{ fontSize: '.78rem', color: '#8B6045' }}>{s.sold_by || '—'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#8B6045' }}>
                       {new Date(s.sold_at).toLocaleString()}
                     </td>
                   </tr>
