@@ -11,6 +11,7 @@ import WarehouseDashboard from './pages/WarehouseDashboard';
 import TransfersPage from './pages/TransfersPage';
 import ShopPage from './pages/ShopPage';
 import DemandForecastPage from './pages/DemandForecastPage';
+import StoreForecastPage from './pages/StoreForecastPage';
 
 function AppRoutes() {
   const { user, getDefaultRoute } = useAuth();
@@ -36,6 +37,12 @@ function AppRoutes() {
         <Route path="/transfers" element={
           <ProtectedRoute allowedRoles={['store_manager', 'regional_manager']}>
             <TransfersPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/store-forecast" element={
+          <ProtectedRoute allowedRoles={['store_manager']}>
+            <StoreForecastPage />
           </ProtectedRoute>
         } />
 

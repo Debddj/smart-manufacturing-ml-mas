@@ -65,7 +65,7 @@ def log_warehouse_transfer(
     """
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(
-        f"[LOG] [{ts}] {agent_name} | {action}: {from_wh} → {to_wh} | "
+        f"[LOG] [{ts}] {agent_name} | {action}: {from_wh} -> {to_wh} | "
         f"Units: {units} | Context: {context} | Order: {order_id}"
     )
 

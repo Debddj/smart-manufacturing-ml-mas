@@ -61,8 +61,8 @@ export default function WarehouseDashboard() {
 
       {imbalance?.imbalance_detected && (
         <div className="dash-panel" style={{ marginBottom: '1.5rem', borderColor: 'rgba(255,107,107,0.3)' }}>
-          <h2 style={{ color: '#ff6b6b' }}>Imbalance Detected</h2>
-          <p style={{ color: '#8892b0', marginBottom: '1rem' }}>
+          <h2 style={{ color: '#dc2626' }}>Imbalance Detected</h2>
+          <p style={{ color: '#64748b', marginBottom: '1rem' }}>
             Average utilization: {imbalance.average_utilization.toFixed(1)}%
           </p>
           {imbalance.warehouses.map(w => (

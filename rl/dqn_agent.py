@@ -74,9 +74,6 @@ if TORCH_AVAILABLE:
 
         def forward(self, x):
             return self.net(x)
-else:
-    class _QNetwork:
-        pass
 
 
 # ── Replay buffer ─────────────────────────────────────────────────────────────

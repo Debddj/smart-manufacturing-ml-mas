@@ -16,6 +16,7 @@ export default function Navbar() {
     if (user.role === 'store_manager') {
       navItems.push({ path: '/store-dashboard', label: 'Dashboard' });
       navItems.push({ path: '/transfers', label: 'Transfers' });
+      navItems.push({ path: '/store-forecast', label: 'Demand Forecast' });
     } else if (user.role === 'sales_person') {
       navItems.push({ path: '/sales', label: 'Sales' });
     } else if (user.role === 'regional_manager') {
@@ -30,7 +31,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate('/')}>
         <span className="brand-icon">&#9881;</span>
-        <span className="brand-text">Supply Chain MAS</span>
+        <span className="brand-text" style={{color: '#1E293B'}}>Supply Chain MAS</span>
       </div>
       <div className="navbar-links">
         {navItems.map((item) => (
