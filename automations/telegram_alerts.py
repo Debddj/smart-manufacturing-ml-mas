@@ -83,7 +83,7 @@ class TelegramAlert:
             result = response.json()
 
             if result.get("ok"):
-                print(f"[TELEGRAM] ✓ Alert sent — message_id: {result['result']['message_id']}")
+                print(f"[TELEGRAM] [OK] Alert sent - message_id: {result['result']['message_id']}")
                 return True
             else:
                 print(f"[TELEGRAM] [ERROR] API returned ok=false: {result}")
@@ -119,7 +119,7 @@ class TelegramAlert:
         try:
             response = requests.post(url, json=payload, timeout=self.TIMEOUT)
             response.raise_for_status()
-            print("[TELEGRAM] ✓ Custom message sent.")
+            print("[TELEGRAM] [OK] Custom message sent.")
             return True
         except Exception as exc:
             print(f"[TELEGRAM] [ERROR] {exc}")

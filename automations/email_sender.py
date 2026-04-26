@@ -275,7 +275,7 @@ This is an automated message from the Smart Manufacturing Multi-Agent System.
                 server.login(self._sender_email, self._sender_password)
                 server.sendmail(self._sender_email, recipient_email, msg.as_string())
 
-            print(f"[EMAIL] ✓ Procurement email sent to {recipient_email}")
+            print(f"[EMAIL] [OK] Procurement email sent to {recipient_email}")
             return True
 
         except Exception as exc:
@@ -528,7 +528,7 @@ Thank you for using Smart Manufacturing MAS.
                 server.login(self._sender_email, self._sender_password)
                 server.sendmail(self._sender_email, recipient_email, msg.as_string())
 
-            print(f"[EMAIL] ✓ Fulfillment+invoice email sent to {recipient_email}")
+            print(f"[EMAIL] [OK] Fulfillment+invoice email sent to {recipient_email}")
             return True
 
         except Exception as exc:

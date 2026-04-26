@@ -92,6 +92,15 @@ def on_startup():
     except Exception as exc:
         print(f"[APP] Database init warning: {exc}")
 
+    # Start the background inventory simulator (dynamic stock fluctuation)
+    try:
+        from agents.inventory_simulator import get_simulator
+        simulator = get_simulator()
+        simulator.start()
+        print("[APP] Inventory simulator started (15s interval).")
+    except Exception as exc:
+        print(f"[APP] Simulator warning: {exc}")
+
     # Wire up WebSocket broadcast and Agents for sales_router
     from api.sales_router import set_broadcast_fn, set_sales_sync_agent
     from api.transfer_router import set_inter_store_agent
