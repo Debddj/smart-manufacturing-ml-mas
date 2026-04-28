@@ -77,7 +77,7 @@ def create_store(
 
     # Create Store Manager
     sm_user_id = f"sm_{suffix}"
-    sm_password = f"MAS-{store_code}-2026"
+    sm_password = "password123"  # same default as seeded users
     sm = User(
         user_id=sm_user_id,
         password=sm_password,
@@ -90,7 +90,7 @@ def create_store(
 
     # Create Sales Person
     sp_user_id = f"sp_{suffix}"
-    sp_password = f"MAS-{store_code}-2026"
+    sp_password = "password123"  # same default as seeded users
     sp = User(
         user_id=sp_user_id,
         password=sp_password,

@@ -7,10 +7,12 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const navItems = [
-    { path: '/shop', label: 'Shop' },
-    { path: '/mas-ops', label: 'MAS Ops', external: true }
-  ];
+  const navItems = [];
+
+  if (user?.role === 'sales_person') {
+    navItems.push({ path: '/shop', label: 'Shop' });
+    navItems.push({ path: '/mas-ops', label: 'MAS Ops', external: true });
+  }
   
   if (user) {
     if (user.role === 'store_manager') {

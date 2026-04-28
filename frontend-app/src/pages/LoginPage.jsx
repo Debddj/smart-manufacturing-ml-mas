@@ -13,7 +13,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const result = await login(userId, password);
+    const result = await login(userId.trim(), password);
     if (result.success) {
       navigate(getDefaultRoute(result.user.role));
     } else {
@@ -38,7 +38,7 @@ export default function LoginPage() {
               id="userId"
               type="text"
               value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              onChange={(e) => setUserId(e.target.value.trim())}
               placeholder="e.g. sm_n1, sp_n1, rm_north"
               autoFocus
               required

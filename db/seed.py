@@ -167,25 +167,15 @@ def seed_all():
                 db.add(sp)
                 user_count += 1
 
-                # Create inventory for each product (varied per store)
+                # Create inventory for each product — always start with 100 units.
+                # This is the opening stock only; real-time sales and orders will
+                # deduct from this via inventory_simulator.process_order_deduction()
+                # and the values will be reflected in the CSV logs and dashboard.
                 for product in products:
-                    # Deterministic but varied quantity per store per product
-                    # Uses a simple hash to create natural-looking variation
-                    seed_val = hash(f"{store_def['code']}_{product.sku}") % 1000
-                    # Base range 40-200, scaled by product's base_demand
-                    base_qty = 40 + (seed_val % 161)  # 40..200
-                    # Adjust: high-demand products get more stock in some stores
-                    if seed_val % 3 == 0:
-                        qty = base_qty * 1.5  # some stores stock more
-                    elif seed_val % 5 == 0:
-                        qty = base_qty * 0.6  # some stores run low
-                    else:
-                        qty = float(base_qty)
-                    qty = round(max(10, min(qty, 350)), 1)  # clamp 10..350
                     inv = StoreInventory(
                         store_id=store.id,
                         product_id=product.id,
-                        quantity=qty,
+                        quantity=100.0,
                     )
                     db.add(inv)
                     inventory_count += 1

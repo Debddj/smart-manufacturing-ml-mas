@@ -70,7 +70,11 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
 
-        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/shop" element={
+          <ProtectedRoute allowedRoles={['sales_person']}>
+            <ShopPage />
+          </ProtectedRoute>
+        } />
 
         <Route path="/" element={user ? <Navigate to={getDefaultRoute(user.role)} /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" />} />

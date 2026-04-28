@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 import './ShopPage.css';
 
@@ -43,6 +44,9 @@ const STAGES = [
 ];
 
 export default function ShopPage() {
+  // Auth context — must be first so all functions below can access user
+  const { user } = useAuth();
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
@@ -65,15 +69,32 @@ export default function ShopPage() {
 
   const loadProducts = async () => {
     let prods = [...DEMO_PRODUCTS];
-    try {
-      const res = await api.get('/api/inventory');
-      const invData = res.data;
-      prods = prods.map(p => ({
-        ...p,
-        inventory: invData[p.sku] ? { available: invData[p.sku].inventory } : { available: Math.floor(Math.random() * 200) }
-      }));
-    } catch {
-      prods = prods.map(p => ({ ...p, inventory: { available: Math.floor(Math.random() * 200) } }));
+    // If a salesperson is logged in, load REAL inventory from their store's DB
+    if (user?.store_id) {
+      try {
+        const res = await api.get(`/api/stores/${user.store_id}/inventory`);
+        // res.data is [{product_id, product_sku, product_name, quantity, ...}]
+        const invMap = {};
+        res.data.forEach(row => { invMap[row.product_sku] = row.quantity; });
+        prods = prods.map(p => ({
+          ...p,
+          inventory: { available: invMap[p.sku] ?? 100 }
+        }));
+      } catch {
+        prods = prods.map(p => ({ ...p, inventory: { available: 100 } }));
+      }
+    } else {
+      // Fallback: try legacy /api/inventory endpoint
+      try {
+        const res = await api.get('/api/inventory');
+        const invData = res.data;
+        prods = prods.map(p => ({
+          ...p,
+          inventory: invData[p.sku] ? { available: invData[p.sku].inventory } : { available: 100 }
+        }));
+      } catch {
+        prods = prods.map(p => ({ ...p, inventory: { available: 100 } }));
+      }
     }
     setProducts(prods);
     const cats = [...new Set(prods.map(p => p.category))];
@@ -86,10 +107,11 @@ export default function ShopPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const addToCart = (sku) => {
-    setCart(prev => ({ ...prev, [sku]: (prev[sku] || 0) + 1 }));
-    const p = products.find(p => p.id === sku);
-    showToast(`Added ${p?.name || sku} to cart`);
+  const addToCart = (productSku) => {
+    // Cart key is the product's real SKU (e.g. "ECW-25") so it matches the DB
+    setCart(prev => ({ ...prev, [productSku]: (prev[productSku] || 0) + 1 }));
+    const p = products.find(p => p.sku === productSku);
+    showToast(`Added ${p?.name || productSku} to cart`);
   };
 
   const changeQty = (sku, delta) => {
@@ -137,13 +159,13 @@ export default function ShopPage() {
     }
   };
 
-  // Store selection state — which store's DB inventory gets deducted
-  const [selectedStoreId, setSelectedStoreId] = useState(4); // default: Kolkata Store 4
+  const selectedStoreId = user?.store_id || null;
 
   const placeOrder = async () => {
     if (Object.keys(cart).length === 0) return;
     setOrderProcessing(true);
     
+    // cart keys are real SKUs (e.g. "ECW-25") — directly usable by the backend
     const cartItems = Object.entries(cart).map(([sku, qty]) => ({sku, qty}));
     const month = new Date().getMonth() + 1;
     const environmentContext = month <= 7 ? 'Summer' : 'Winter';
@@ -207,7 +229,7 @@ export default function ShopPage() {
   let cartTotal = 0;
   let cartUnits = 0;
   Object.keys(cart).forEach(sku => {
-    const p = products.find(p => p.id === sku);
+    const p = products.find(p => p.sku === sku);
     const price = p?.price?.amount || 0;
     cartTotal += price * cart[sku];
     cartUnits += cart[sku];
@@ -239,7 +261,7 @@ export default function ShopPage() {
             const status = inv > base * 3 ? 'in_stock' : inv > 0 ? 'low_stock' : 'out_of_stock';
             const scls = status === 'in_stock' ? 'shop-stock-in' : status === 'low_stock' ? 'shop-stock-low' : 'shop-stock-out';
             const slbl = status === 'in_stock' ? 'In Stock' : status === 'low_stock' ? 'Low Stock' : 'Out of Stock';
-            const inCart = cart[p.id] || 0;
+            const inCart = cart[p.sku] || 0;
 
             return (
               <div key={p.id} className="shop-product-card">
@@ -257,7 +279,7 @@ export default function ShopPage() {
                 <div className="shop-product-lead">Lead time: {p.lead}</div>
                 <button 
                   className={`shop-add-btn ${inCart > 0 ? 'in-cart' : ''}`}
-                  onClick={() => addToCart(p.id)}
+                  onClick={() => addToCart(p.sku)}
                 >
                   {inCart > 0 ? `In Cart — ${inCart} unit${inCart > 1 ? 's' : ''}` : 'Add to Cart'}
                 </button>
@@ -282,7 +304,7 @@ export default function ShopPage() {
           <>
             <div className="shop-cart-items">
               {Object.keys(cart).map(sku => {
-                const p = products.find(p => p.id === sku) || {};
+                const p = products.find(p => p.sku === sku) || {};
                 const qty = cart[sku];
                 const price = p.price?.amount || 0;
                 return (
@@ -373,48 +395,6 @@ export default function ShopPage() {
                 )}
               </div>
 
-              {/* Store Selector — which store's inventory gets deducted */}
-              <div className="shop-wh-section" style={{ marginTop: '1rem' }}>
-                <div className="shop-wh-section-title" style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}>
-                  <span>🏪</span> Order from Store
-                </div>
-                <p style={{ fontSize: '.7rem', color: 'var(--shop-muted2)', marginBottom: '.6rem' }}>
-                  Inventory will be deducted from the selected store's stock
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '.3rem' }}>
-                  {[
-                    { id: 1, label: 'KOL 1' },
-                    { id: 2, label: 'KOL 2' },
-                    { id: 3, label: 'KOL 3' },
-                    { id: 4, label: 'KOL 4' },
-                    { id: 5, label: 'KAS 1' },
-                    { id: 6, label: 'KAS 2' },
-                    { id: 7, label: 'KAS 3' },
-                    { id: 8, label: 'KAS 4' },
-                  ].map(store => (
-                    <button
-                      key={store.id}
-                      onClick={() => setSelectedStoreId(store.id)}
-                      style={{
-                        padding: '.3rem .2rem',
-                        fontSize: '.67rem',
-                        fontWeight: 600,
-                        borderRadius: 6,
-                        border: selectedStoreId === store.id ? '2px solid var(--shop-primary)' : '1px solid var(--shop-border)',
-                        background: selectedStoreId === store.id ? 'var(--shop-primary)' : 'var(--shop-surface2)',
-                        color: selectedStoreId === store.id ? '#fff' : 'var(--shop-ink)',
-                        cursor: 'pointer',
-                        transition: 'all .15s ease',
-                      }}
-                    >
-                      {store.label}
-                    </button>
-                  ))}
-                </div>
-                <p style={{ fontSize: '.68rem', color: 'var(--shop-muted)', marginTop: '.4rem', textAlign: 'center' }}>
-                  Selected: <strong>Store {selectedStoreId}</strong> {selectedStoreId <= 4 ? '(Kolkata)' : '(Kashmir)'}
-                </p>
-              </div>
 
               <button 
                 className="shop-checkout-btn" 

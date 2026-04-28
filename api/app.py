@@ -635,6 +635,7 @@ async def trigger_order_v1(request: Request):
             inventory_updates = InventorySimulator.process_order_deduction(
                 store_id=int(store_id),
                 items=cart_items,
+                order_id=order_id,
             )
             # Broadcast each deducted item via WebSocket
             for upd in inventory_updates:
