@@ -17,19 +17,48 @@ export default function DemandForecastPage() {
   const [loading, setLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState(null);
 
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [liveFlash, setLiveFlash] = useState(false);
+
+  const loadForecastData = async (silent = false) => {
+    if (!user?.region_id) return;
+    if (!silent) setLoading(true);
+    try {
+      const res = await api.get(`/api/regions/${user.region_id}/stores/forecast`);
+      setStores(res.data);
+      setLastUpdated(new Date());
+    } catch (e) {
+      console.error("Failed to load forecast data", e);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  // Initial load + 30-second polling
   useEffect(() => {
-    const loadData = async () => {
+    if (!user?.region_id) return;
+    loadForecastData();
+    const interval = setInterval(() => loadForecastData(true), 30000);
+    return () => clearInterval(interval);
+  }, [user?.region_id]);
+
+  // SSE — listen for order_inventory_change events → refresh immediately
+  useEffect(() => {
+    if (!user?.region_id) return;
+    const evtSource = new EventSource('/api/stream');
+    evtSource.onmessage = (e) => {
       try {
-        const res = await api.get(`/api/regions/${user.region_id}/stores/forecast`);
-        setStores(res.data);
-      } catch (e) {
-        console.error("Failed to load forecast data", e);
-      } finally {
-        setLoading(false);
-      }
+        const ev = JSON.parse(e.data);
+        if (ev.type === 'order_inventory_change') {
+          setLiveFlash(true);
+          setTimeout(() => setLiveFlash(false), 2500);
+          loadForecastData(true);
+        }
+      } catch { /* ignore */ }
     };
-    if (user?.region_id) setTimeout(loadData, 0);
-  }, [user]);
+    evtSource.onerror = () => {};
+    return () => evtSource.close();
+  }, [user?.region_id]);
 
   const totalProducts = stores.reduce((sum, s) => sum + s.product_count, 0);
   const highDemandCount = stores.reduce(
@@ -81,8 +110,45 @@ export default function DemandForecastPage() {
   return (
     <div className="forecast-dashboard">
       <div className="forecast-header">
-        <h1>Regional Demand Forecast</h1>
-        <p>Store-level demand analysis for your region</p>
+        <div>
+          <h1>Regional Demand Forecast</h1>
+          <p>Store-level demand analysis for your region · Live inventory-driven updates</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
+          {/* Live update flash badge */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '.4rem',
+            padding: '.3rem .7rem', borderRadius: 20,
+            background: liveFlash ? '#f97316' : '#22c55e',
+            color: '#fff', fontSize: '.7rem', fontWeight: 700,
+            transition: 'background .4s ease',
+            boxShadow: liveFlash ? '0 0 8px rgba(249,115,22,.6)' : '0 0 6px rgba(34,197,94,.4)',
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%', background: '#fff',
+              display: 'inline-block',
+              animation: 'pulse 1.5s infinite',
+            }} />
+            {liveFlash ? '⚡ ORDER UPDATE' : '● LIVE'}
+          </div>
+          {/* Last updated */}
+          {lastUpdated && (
+            <span style={{ fontSize: '.68rem', color: '#8B6045' }}>
+              Updated {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          {/* Manual refresh */}
+          <button
+            onClick={() => loadForecastData(false)}
+            style={{
+              padding: '.3rem .7rem', borderRadius: 8, fontSize: '.72rem', fontWeight: 600,
+              border: '1px solid #D4B896', background: '#F5EDE0', color: '#8B4513',
+              cursor: 'pointer',
+            }}
+          >
+            ↻ Refresh
+          </button>
+        </div>
       </div>
 
       {loading ? (

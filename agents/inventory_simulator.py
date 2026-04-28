@@ -84,18 +84,34 @@ class InventorySimulator:
             time.sleep(self.interval)
 
     def _tick(self) -> None:
-        """One simulation tick: random sales + low-stock procurement + restocking."""
+        """One simulation tick: random sales + Sale records + alerts + restocking."""
         from db.database import SessionLocal
-        from db.models import StoreInventory, Store, Product
+        from db.models import StoreInventory, Store, Product, Sale, StockAlert, User
+        import datetime as _dt
+
+        LOW_STOCK_THRESHOLD = 20.0
+        CRITICAL_THRESHOLD  = 5.0
 
         db = SessionLocal()
         try:
-            # Get all inventory records
+            # Get all inventory records (with product joined for price)
             all_inv = db.query(StoreInventory).all()
             if not all_inv:
                 return
 
-            # ── Simulate sales (decrement) ─────────────────────────────
+            # Cache: store_id → first active user id (for Sale.sold_by)
+            store_user_cache: dict = {}
+
+            def _get_user(store_id: int) -> int:
+                if store_id not in store_user_cache:
+                    u = db.query(User).filter(
+                        User.store_id == store_id,
+                        User.is_active == True,
+                    ).first()
+                    store_user_cache[store_id] = u.id if u else 1
+                return store_user_cache[store_id]
+
+            # ── Simulate sales (decrement) + record Sale rows ──────────
             sale_candidates = [inv for inv in all_inv if inv.quantity > 5]
             if sale_candidates:
                 items_to_sell = random.sample(
@@ -104,13 +120,49 @@ class InventorySimulator:
                 )
                 for inv in items_to_sell:
                     max_sell = min(15, int(inv.quantity * 0.15))
-                    sell_qty = random.randint(1, max(1, max_sell))
-                    inv.quantity = max(0, inv.quantity - sell_qty)
+                    sell_qty = float(random.randint(1, max(1, max_sell)))
+                    inv.quantity = max(0.0, inv.quantity - sell_qty)
+
+                    # Fetch product for price (cached via identity map)
+                    product = db.query(Product).filter(Product.id == inv.product_id).first()
+                    unit_price = product.unit_price if product else 0.0
+
+                    # ── Write Sale record so dashboard stats are non-zero ──
+                    sale = Sale(
+                        store_id=inv.store_id,
+                        product_id=inv.product_id,
+                        quantity=sell_qty,
+                        sale_price=unit_price * sell_qty,
+                        sold_by=_get_user(inv.store_id),
+                        sold_at=_dt.datetime.utcnow(),
+                    )
+                    db.add(sale)
+
+                    # ── Auto-create StockAlert when thresholds crossed ────
+                    if inv.quantity <= CRITICAL_THRESHOLD:
+                        alert_type = "out_of_stock"
+                    elif inv.quantity <= LOW_STOCK_THRESHOLD:
+                        alert_type = "low_stock"
+                    else:
+                        alert_type = None
+
+                    if alert_type:
+                        existing = db.query(StockAlert).filter(
+                            StockAlert.store_id == inv.store_id,
+                            StockAlert.product_id == inv.product_id,
+                            StockAlert.alert_type == alert_type,
+                            StockAlert.is_resolved == False,
+                        ).first()
+                        if not existing:
+                            db.add(StockAlert(
+                                store_id=inv.store_id,
+                                product_id=inv.product_id,
+                                alert_type=alert_type,
+                                threshold=CRITICAL_THRESHOLD if alert_type == "out_of_stock" else LOW_STOCK_THRESHOLD,
+                                current_level=inv.quantity,
+                            ))
 
             # ── Auto-procurement email trigger (≤40 units) ─────────────
-            # Check all inventory items; if any has hit the threshold
-            # and we haven't already emailed about it, fire a
-            # procurement email to the manufacturer.
             low_items = [
                 inv for inv in all_inv
                 if inv.quantity <= PROCUREMENT_THRESHOLD
@@ -120,16 +172,23 @@ class InventorySimulator:
                 self._trigger_procurement_emails(low_items, db)
 
             # ── Simulate restocking (increment) ───────────────────────
-            # Restock items that have fallen below the restock threshold
             low_stock = [inv for inv in all_inv if inv.quantity < self.restock_threshold]
             for inv in low_stock:
-                # ~30% chance of restock per tick (gradual, not instant)
                 if random.random() < 0.3:
                     restock_qty = self.restock_amount + random.uniform(-20, 30)
                     inv.quantity += round(restock_qty, 1)
-                    # Clear the email flag so it can re-trigger if it drops again
                     with self._email_lock:
                         self._emailed_items.discard((inv.store_id, inv.product_id))
+                    # Resolve any open low_stock alerts for this item
+                    db.query(StockAlert).filter(
+                        StockAlert.store_id == inv.store_id,
+                        StockAlert.product_id == inv.product_id,
+                        StockAlert.is_resolved == False,
+                        StockAlert.alert_type.in_(["low_stock", "out_of_stock"]),
+                    ).update(
+                        {"is_resolved": True, "resolved_at": _dt.datetime.utcnow()},
+                        synchronize_session=False,
+                    )
 
             db.commit()
 
@@ -180,6 +239,128 @@ class InventorySimulator:
                 args=(email_batch,),
                 daemon=True,
             ).start()
+
+    # ── Order-driven inventory deduction ─────────────────────────────────────
+
+    @staticmethod
+    def process_order_deduction(store_id: int, items: list, system_user_id: int = 1) -> list:
+        """
+        Deduct ordered quantities from a specific store's DB inventory.
+
+        Called by the order pipeline whenever a real shop order is placed.
+        Unlike the random simulation tick, this is deterministic and directly
+        tied to actual cart items.
+
+        Args:
+            store_id:       The store whose inventory to deduct from.
+            items:          List of {"sku": str, "qty": int/float} dicts.
+            system_user_id: User ID to record on Sale rows (defaults to 1 / first manager).
+
+        Returns:
+            List of update dicts: [{product_id, product_name, sku, old_qty, new_qty, alert}]
+        """
+        from db.database import SessionLocal
+        from db.models import StoreInventory, Product, Sale, StockAlert, User
+        import datetime as _dt
+
+        LOW_STOCK_THRESHOLD = 20.0
+        CRITICAL_THRESHOLD  = 5.0
+
+        db = SessionLocal()
+        updates = []
+        try:
+            # Resolve the system user (fallback to first active user for store)
+            user = db.query(User).filter(
+                User.store_id == store_id,
+                User.is_active == True,
+            ).first()
+            sold_by_id = user.id if user else system_user_id
+
+            for item in items:
+                sku = item.get("sku", "")
+                qty = float(item.get("qty", 1))
+
+                # Look up product by SKU
+                product = db.query(Product).filter(Product.sku == sku).first()
+                if not product:
+                    logger.warning("[ORDER-DEDUCT] SKU not found: %s", sku)
+                    continue
+
+                # Look up store inventory row
+                inv = db.query(StoreInventory).filter(
+                    StoreInventory.store_id == store_id,
+                    StoreInventory.product_id == product.id,
+                ).first()
+                if not inv:
+                    logger.warning(
+                        "[ORDER-DEDUCT] No inventory row for store_id=%s, sku=%s", store_id, sku
+                    )
+                    continue
+
+                old_qty = inv.quantity
+                # Deduct — floor at 0
+                inv.quantity = max(0.0, inv.quantity - qty)
+                inv.last_updated = _dt.datetime.utcnow()
+
+                # Record as a Sale
+                sale = Sale(
+                    store_id=store_id,
+                    product_id=product.id,
+                    quantity=min(qty, old_qty),          # can't sell more than was in stock
+                    sale_price=product.unit_price * min(qty, old_qty),
+                    sold_by=sold_by_id,
+                )
+                db.add(sale)
+
+                # Alert logic
+                alert_type = None
+                if inv.quantity <= CRITICAL_THRESHOLD:
+                    alert_type = "out_of_stock"
+                elif inv.quantity <= LOW_STOCK_THRESHOLD:
+                    # Only if no unresolved alert already exists
+                    existing = db.query(StockAlert).filter(
+                        StockAlert.store_id == store_id,
+                        StockAlert.product_id == product.id,
+                        StockAlert.alert_type == "low_stock",
+                        StockAlert.is_resolved == False,
+                    ).first()
+                    if not existing:
+                        alert_type = "low_stock"
+
+                if alert_type:
+                    alert = StockAlert(
+                        store_id=store_id,
+                        product_id=product.id,
+                        alert_type=alert_type,
+                        threshold=CRITICAL_THRESHOLD if alert_type == "out_of_stock" else LOW_STOCK_THRESHOLD,
+                        current_level=inv.quantity,
+                    )
+                    db.add(alert)
+
+                updates.append({
+                    "product_id":   product.id,
+                    "product_name": product.name,
+                    "sku":          sku,
+                    "old_qty":      round(old_qty, 1),
+                    "new_qty":      round(inv.quantity, 1),
+                    "change":       -round(min(qty, old_qty), 1),
+                    "alert":        alert_type,
+                })
+
+                logger.info(
+                    "[ORDER-DEDUCT] store=%s  sku=%s  %s → %s (-%s)",
+                    store_id, sku, round(old_qty, 1), round(inv.quantity, 1), round(min(qty, old_qty), 1),
+                )
+
+            db.commit()
+
+        except Exception as exc:
+            db.rollback()
+            logger.error("[ORDER-DEDUCT] DB error: %s", exc)
+        finally:
+            db.close()
+
+        return updates
 
     @staticmethod
     def _send_procurement_batch(batch: list) -> None:

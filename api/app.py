@@ -594,29 +594,87 @@ async def trigger_order_v1(request: Request):
     """
     POST /api/v1/trigger_order
 
-    Body: {cart_items: [{sku, qty}], environment_context: str, customer_id: str}
-    Returns: {status, order_id, message}
+    Body: {
+        cart_items: [{sku, qty}],
+        environment_context: str,
+        customer_id: str,
+        store_id: int   ← NEW: which store's inventory to deduct from
+    }
+    Returns: {status, order_id, message, inventory_updates}
 
     Instantiates OrderOrchestrator and runs the full MAS pipeline in a
-    background thread. The frontend can then listen on SSE or WebSocket
-    for real-time agent events.
+    background thread. ALSO immediately deducts ordered quantities from
+    the specified store's DB inventory so the dashboard updates in real time.
     """
     from api.order_orchestrator import OrderOrchestrator  # local import to avoid circular
-    body               = await request.json()
-    cart_items         = body.get("cart_items", body.get("items", []))
-    environment_context= body.get("environment_context", "Summer")
-    customer_id        = body.get("customer_id", "CUST-ANON")
+    from agents.inventory_simulator import InventorySimulator
+
+    body                = await request.json()
+    cart_items          = body.get("cart_items", body.get("items", []))
+    environment_context = body.get("environment_context", "Summer")
+    customer_id         = body.get("customer_id", "CUST-ANON")
+    store_id            = body.get("store_id", None)   # ← NEW
 
     order_id = "ORD-" + uuid.uuid4().hex[:8].upper()
     orders_db[order_id] = {
-        "order_id":   order_id,
-        "items":      cart_items,
-        "status":     "PROCESSING",
-        "created":    datetime.now().isoformat(),
-        "context":    environment_context,
-        "customer_id":customer_id,
+        "order_id":    order_id,
+        "items":       cart_items,
+        "status":      "PROCESSING",
+        "created":     datetime.now().isoformat(),
+        "context":     environment_context,
+        "customer_id": customer_id,
+        "store_id":    store_id,
     }
 
+    # ── Immediate inventory deduction (synchronous, before orchestrator) ──────
+    # Deduct ordered quantities from the selected store's DB inventory right
+    # away so the StoreDashboard WebSocket sees the change immediately.
+    inventory_updates = []
+    if store_id:
+        try:
+            inventory_updates = InventorySimulator.process_order_deduction(
+                store_id=int(store_id),
+                items=cart_items,
+            )
+            # Broadcast each deducted item via WebSocket
+            for upd in inventory_updates:
+                ws_msg = {
+                    "type":         "inventory_update",
+                    "store_id":     int(store_id),
+                    "product_id":   upd["product_id"],
+                    "product_name": upd["product_name"],
+                    "new_quantity": upd["new_qty"],
+                    "change":       upd["change"],
+                    "change_type":  "order",
+                    "order_id":     order_id,
+                    "alert":        upd["alert"],
+                }
+                # ws_hub.broadcast is a coroutine — schedule it safely
+                try:
+                    import asyncio
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(ws_hub.broadcast(ws_msg))
+                except Exception:
+                    pass
+
+            # Also push SSE event so DemandForecastPage can react
+            _push({
+                "type":              "order_inventory_change",
+                "order_id":          order_id,
+                "store_id":          int(store_id),
+                "items_deducted":    inventory_updates,
+                "ts":                datetime.now().strftime("%H:%M:%S.%f")[:-3],
+            }, None)
+
+            print(
+                f"[ORDER-DEDUCT] store={store_id} | order={order_id} | "
+                f"deducted {len(inventory_updates)} item(s)",
+                flush=True,
+            )
+        except Exception as exc:
+            print(f"[ORDER-DEDUCT] Warning — deduction failed: {exc}", flush=True)
+
+    # ── Background orchestrator (MAS pipeline) ────────────────────────────────
     def _run_orchestrator():
         orchestrator = OrderOrchestrator(
             order_id=order_id,
@@ -632,9 +690,11 @@ async def trigger_order_v1(request: Request):
     t.start()
 
     return JSONResponse({
-        "status":   "PROCESSING",
-        "order_id": order_id,
-        "message":  f"Order {order_id} accepted — MAS pipeline started.",
+        "status":            "PROCESSING",
+        "order_id":          order_id,
+        "message":           f"Order {order_id} accepted — MAS pipeline started.",
+        "inventory_updates": inventory_updates,
+        "store_id":          store_id,
     })
 
 

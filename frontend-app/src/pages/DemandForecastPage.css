@@ -20,6 +20,11 @@
 
 .forecast-header {
   margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .forecast-header h1 {
@@ -386,4 +391,9 @@
   .forecast-grid {
     grid-template-columns: 1fr;
   }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .55; transform: scale(1.3); }
 }

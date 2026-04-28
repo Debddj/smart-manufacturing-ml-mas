@@ -137,6 +137,9 @@ export default function ShopPage() {
     }
   };
 
+  // Store selection state — which store's DB inventory gets deducted
+  const [selectedStoreId, setSelectedStoreId] = useState(4); // default: Kolkata Store 4
+
   const placeOrder = async () => {
     if (Object.keys(cart).length === 0) return;
     setOrderProcessing(true);
@@ -150,13 +153,31 @@ export default function ShopPage() {
       const res = await api.post('/api/v1/trigger_order', {
         cart_items: cartItems,
         environment_context: environmentContext,
-        customer_id: customerId
+        customer_id: customerId,
+        store_id: selectedStoreId,   // ← tells backend which store to deduct
       });
       const oId = res.data.order_id;
       setOrderId(oId);
       setOrderDone(false);
       setActiveStage('received');
       showToast('📨 Procurement + fulfillment emails will be sent on completion.');
+
+      // ── Immediate inventory update from deduction response ─────────────────
+      // The backend returns which items were deducted and their new quantities.
+      // Update the product cards right away so the user sees stock drop live.
+      const updates = res.data.inventory_updates || [];
+      if (updates.length > 0) {
+        setProducts(prev => prev.map(p => {
+          const hit = updates.find(u => u.sku === p.sku);
+          if (hit) {
+            return { ...p, inventory: { available: Math.max(0, hit.new_qty) } };
+          }
+          return p;
+        }));
+        const deductedNames = updates.map(u => u.product_name).join(', ');
+        showToast(`📉 Inventory deducted at Store ${selectedStoreId}: ${deductedNames}`);
+      }
+      // ──────────────────────────────────────────────────────────────────────
 
       const evtSource = new EventSource(`/api/stream/${oId}`);
       evtSource.onmessage = (e) => {
@@ -170,6 +191,8 @@ export default function ShopPage() {
             setCart({});
             showToast('✅ Order delivered! Check your email for invoice + procurement contract.');
             evtSource.close();
+            // Refresh product inventory after delivery to reflect latest DB state
+            setTimeout(loadProducts, 1500);
           }
         }
       };
@@ -348,6 +371,49 @@ export default function ShopPage() {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* Store Selector — which store's inventory gets deducted */}
+              <div className="shop-wh-section" style={{ marginTop: '1rem' }}>
+                <div className="shop-wh-section-title" style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}>
+                  <span>🏪</span> Order from Store
+                </div>
+                <p style={{ fontSize: '.7rem', color: 'var(--shop-muted2)', marginBottom: '.6rem' }}>
+                  Inventory will be deducted from the selected store's stock
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '.3rem' }}>
+                  {[
+                    { id: 1, label: 'KOL 1' },
+                    { id: 2, label: 'KOL 2' },
+                    { id: 3, label: 'KOL 3' },
+                    { id: 4, label: 'KOL 4' },
+                    { id: 5, label: 'KAS 1' },
+                    { id: 6, label: 'KAS 2' },
+                    { id: 7, label: 'KAS 3' },
+                    { id: 8, label: 'KAS 4' },
+                  ].map(store => (
+                    <button
+                      key={store.id}
+                      onClick={() => setSelectedStoreId(store.id)}
+                      style={{
+                        padding: '.3rem .2rem',
+                        fontSize: '.67rem',
+                        fontWeight: 600,
+                        borderRadius: 6,
+                        border: selectedStoreId === store.id ? '2px solid var(--shop-primary)' : '1px solid var(--shop-border)',
+                        background: selectedStoreId === store.id ? 'var(--shop-primary)' : 'var(--shop-surface2)',
+                        color: selectedStoreId === store.id ? '#fff' : 'var(--shop-ink)',
+                        cursor: 'pointer',
+                        transition: 'all .15s ease',
+                      }}
+                    >
+                      {store.label}
+                    </button>
+                  ))}
+                </div>
+                <p style={{ fontSize: '.68rem', color: 'var(--shop-muted)', marginTop: '.4rem', textAlign: 'center' }}>
+                  Selected: <strong>Store {selectedStoreId}</strong> {selectedStoreId <= 4 ? '(Kolkata)' : '(Kashmir)'}
+                </p>
               </div>
 
               <button 
